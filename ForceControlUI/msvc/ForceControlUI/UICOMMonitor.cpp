@@ -1,4 +1,4 @@
-#include "UICOMMonitor.h"
+ï»¿#include "UICOMMonitor.h"
 #include "UIMainWindow.h"
 #include "UIWindowManager.h"
 #include "UIConnectionSettings.h"
@@ -15,15 +15,23 @@
 #include <algorithm>
 #include "UICfgParser.h"
 #include "UIUtils.h"
-#include "portable-file-dialogs.h"  // µ¥Í·ÎÄ¼ş
+#include "portable-file-dialogs.h"  // å•å¤´æ–‡ä»¶
+
+namespace
+{
+bool IsValidComIndex(int index, size_t count)
+{
+    return index >= 0 && static_cast<size_t>(index) < count;
+}
+}
 
 UICOMMonitor::UICOMMonitor(UIMainWindowBase* main_win, const char* title) : UIBaseWindow(main_win, title)
 {
-    // ´ÓUIConnectionSettings¶ÔÏó»ñÈ¡ModbusProxyÖ¸Õë²¢¸³Öµ¸øm_modbus
+    // ä»UIConnectionSettingså¯¹è±¡è·å–ModbusProxyæŒ‡é’ˆå¹¶èµ‹å€¼ç»™m_modbus
     UIMainWindow* uimain_win = dynamic_cast<UIMainWindow*>(main_win);
     UIWindowManagerPtr win_mng = std::dynamic_pointer_cast<UIWindowManager>(uimain_win->GetWindowManager());
     //m_modbus = win_mng->GetConnectionSettings()->GetModbusProxy();
-    //// ×¢²áÊı¾İ»Øµ÷º¯Êı
+    //// æ³¨å†Œæ•°æ®å›è°ƒå‡½æ•°
     //m_modbus->RegisterDataCallback(std::bind(&UICOMMonitor::OnRegDataCB, this, std::placeholders::_1, std::placeholders::_2));
     
     for (int i = 0; i < EMB_MAX_COM_NUM; i++)
@@ -37,13 +45,13 @@ UICOMMonitor::UICOMMonitor(UIMainWindowBase* main_win, const char* title) : UIBa
             m_vec_coms.push_back(fmt::format("COM{}", i + 1));
         }
     }
-    // Ê¹ÓÃ ImGuiTextBuffer ĞĞÆ«ÒÆ£ºÊ×ÔªËØÎª 0
+    // ä½¿ç”¨ ImGuiTextBuffer è¡Œåç§»ï¼šé¦–å…ƒç´ ä¸º 0
     m_display_line_offsets.clear();
     m_display_line_offsets.push_back(0);
     
-    // ³õÊ¼»¯ÀúÊ·Êı¾İ¶ÔÏó
+    // åˆå§‹åŒ–å†å²æ•°æ®å¯¹è±¡
     m_vec_hist_data.resize(CALIBRATION_STRAIN_CHANNEL_NUM);
-    // ´´½¨ĞòÁĞ»¯Ïß³Ì
+    // åˆ›å»ºåºåˆ—åŒ–çº¿ç¨‹
     m_serialize_thread = std::thread(&UICOMMonitor::SerializeThreadFunc, this);
 }
 
@@ -54,11 +62,11 @@ UICOMMonitor::~UICOMMonitor()
     {
         m_serialize_thread.join();
     }
-    m_com1.CloseSerialPort(); // È·±£´®¿ÚÁ¬½Ó±»¹Ø±Õ
-    m_com2.CloseSerialPort(); // È·±£´®¿ÚÁ¬½Ó±»¹Ø±Õ
+    m_com1.CloseSerialPort(); // ç¡®ä¿ä¸²å£è¿æ¥è¢«å…³é—­
+    m_com2.CloseSerialPort(); // ç¡®ä¿ä¸²å£è¿æ¥è¢«å…³é—­
 }
 
-// ========== ¾²Ì¬¹¤¾ß·½·¨ÊµÏÖ ==========
+// ========== é™æ€å·¥å…·æ–¹æ³•å®ç° ==========
 
 std::string UICOMMonitor::RemoveNewlines(const std::string& s) {
     std::string result;
@@ -78,7 +86,7 @@ void UICOMMonitor::ParseFloatArray(const std::string& input) {
     std::string token;
 
     while (std::getline(ss, token, ',')) {
-        // È¥µô¿ÉÄÜµÄ»»ĞĞ·ûºÍ¿Õ¸ñ
+        // å»æ‰å¯èƒ½çš„æ¢è¡Œç¬¦å’Œç©ºæ ¼
         token.erase(
             std::remove_if(token.begin(), token.end(),
                 [](char c) {
@@ -92,14 +100,15 @@ void UICOMMonitor::ParseFloatArray(const std::string& input) {
                 result.push_back(std::stof(token));
             }
             catch (...) {
-                // ½âÎöÊ§°Ü£¬Ìø¹ı
+                // è§£æå¤±è´¥ï¼Œè·³è¿‡
             }
         }
     }
 
     {
         std::lock_guard<std::mutex> lock(m_sensors_data_lock);
-        for (int i = 0; i < result.size(); i++)
+        const int channel_count = std::min(static_cast<int>(result.size()), CALIBRATION_STRAIN_CHANNEL_NUM);
+        for (int i = 0; i < channel_count; i++)
         {
             m_sensors.com_data[i] = result[i];
         }
@@ -107,18 +116,18 @@ void UICOMMonitor::ParseFloatArray(const std::string& input) {
 
     if (m_start_serialize)
     {
-        // ²ÉÑùÊı¾İĞòÁĞ»¯
+        // é‡‡æ ·æ•°æ®åºåˆ—åŒ–
         {
             std::lock_guard<std::mutex> lock(m_com_data_lock);
             m_com_data.push_back(m_sensors);
         }
     }
-    { // »æÍ¼×¨ÓÃ
-        // »ñÈ¡µ±Ç°³ÌĞòÊ±¼ä£¬×ª»¯Îª¸¡µãÊı£¬µ¥Î»ÎªÃë
+    { // ç»˜å›¾ä¸“ç”¨
+        // è·å–å½“å‰ç¨‹åºæ—¶é—´ï¼Œè½¬åŒ–ä¸ºæµ®ç‚¹æ•°ï¼Œå•ä½ä¸ºç§’
         auto now = std::chrono::steady_clock::now();
         float t = std::chrono::duration<float>(now - m_start_time).count();
 
-        // ¸üĞÂÊı¾İ¶ÓÁĞ
+        // æ›´æ–°æ•°æ®é˜Ÿåˆ—
         {
             std::lock_guard<std::mutex> lock(m_vec_hist_data_lock);
             for (int i = 0; i < ADC_CHANNEL_NUM; i++)
@@ -142,7 +151,7 @@ void UICOMMonitor::Draw()
         ImGui::End();
         return;
     }
-    // ¿½±´inputÊı¾İ
+    // æ‹·è´inputæ•°æ®
     ST_ComData ComInfo = { 0 };
     {
         std::lock_guard<std::mutex> lock(m_sensors_data_lock);
@@ -150,20 +159,28 @@ void UICOMMonitor::Draw()
     }
 
     ST_SerialCfg* serial1_cfg = &(g_cfg->m_com1_serial_cfg);
-    if (ImGui::CollapsingHeader(u8"´®¿Ú1²ÎÊıÉèÖÃ", ImGuiTreeNodeFlags_DefaultOpen))
+    if (ImGui::CollapsingHeader(u8"ä¸²å£1å‚æ•°è®¾ç½®", ImGuiTreeNodeFlags_DefaultOpen))
     {
         ImGui::BeginDisabled(m_com1.IsConnected());
-        stbsp_sprintf(buf, u8"%s Ñ¡Ôñ´®¿ÚºÅ1", ICON_FA_ADDRESS_BOOK);
+        stbsp_sprintf(buf, u8"%s é€‰æ‹©ä¸²å£å·1", ICON_FA_ADDRESS_BOOK);
         ImGui::Text(buf);
-        const char* combo_preview_value = serial1_cfg->com_index >= 0 ? m_vec_coms[serial1_cfg->com_index].c_str() : ""; // Pass in the preview value visible before opening the combo (it could be anything)
-        if (ImGui::BeginCombo(u8"´®¿ÚºÅ1", combo_preview_value, 0))
+        const char* combo_preview_value = IsValidComIndex(serial1_cfg->com_index, m_vec_coms.size()) ? m_vec_coms[serial1_cfg->com_index].c_str() : u8"ä¸ä½¿ç”¨"; // Pass in the preview value visible before opening the combo (it could be anything)
+        if (ImGui::BeginCombo(u8"ä¸²å£å·1", combo_preview_value, 0))
         {
+            const bool is_disabled = serial1_cfg->com_index < 0;
+            if (ImGui::Selectable(u8"ä¸ä½¿ç”¨", is_disabled))
+            {
+                serial1_cfg->com_index = -1;
+            }
+            if (is_disabled)
+                ImGui::SetItemDefaultFocus();
+
             for (size_t n = 0; n < m_vec_coms.size(); n++)
             {
-                const bool is_selected = (serial1_cfg->com_index == n);
+                const bool is_selected = (serial1_cfg->com_index == static_cast<int>(n));
                 if (ImGui::Selectable(m_vec_coms[n].c_str(), is_selected))
                 {
-                    serial1_cfg->com_index = n;
+                    serial1_cfg->com_index = static_cast<int>(n);
                 }
 
                 // Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
@@ -172,7 +189,7 @@ void UICOMMonitor::Draw()
             }
             ImGui::EndCombo();
         }
-        if (ImGui::Combo(u8"´®¿Ú1²¨ÌØÂÊ", (int*)&serial1_cfg->baud_rate, u8" 9600\0 14400\0 19200\0 38400\0 56000\0 57600\0 115200\0"
+        if (ImGui::Combo(u8"ä¸²å£1æ³¢ç‰¹ç‡", (int*)&serial1_cfg->baud_rate, u8" 9600\0 14400\0 19200\0 38400\0 56000\0 57600\0 115200\0"
             u8" 230400\0 250000\0 500000\0 1000000\0 2000000\0 3000000\0 4000000\0"))
         {
         }
@@ -180,20 +197,28 @@ void UICOMMonitor::Draw()
     }
 
     ST_SerialCfg* serial2_cfg = &(g_cfg->m_com2_serial_cfg);
-    if (ImGui::CollapsingHeader(u8"´®¿Ú2²ÎÊıÉèÖÃ", ImGuiTreeNodeFlags_DefaultOpen))
+    if (ImGui::CollapsingHeader(u8"ä¸²å£2å‚æ•°è®¾ç½®", ImGuiTreeNodeFlags_DefaultOpen))
     {
         ImGui::BeginDisabled(m_com2.IsConnected());
-        stbsp_sprintf(buf, u8"%s Ñ¡Ôñ´®¿ÚºÅ2", ICON_FA_ADDRESS_BOOK);
+        stbsp_sprintf(buf, u8"%s é€‰æ‹©ä¸²å£å·2", ICON_FA_ADDRESS_BOOK);
         ImGui::Text(buf);
-        const char* combo_preview_value2 = serial2_cfg->com_index >= 0 ? m_vec_coms[serial2_cfg->com_index].c_str() : ""; // Pass in the preview value visible before opening the combo (it could be anything)
-        if (ImGui::BeginCombo(u8"´®¿ÚºÅ2", combo_preview_value2, 0))
+        const char* combo_preview_value2 = IsValidComIndex(serial2_cfg->com_index, m_vec_coms.size()) ? m_vec_coms[serial2_cfg->com_index].c_str() : u8"ä¸ä½¿ç”¨"; // Pass in the preview value visible before opening the combo (it could be anything)
+        if (ImGui::BeginCombo(u8"ä¸²å£å·2", combo_preview_value2, 0))
         {
+            const bool is_disabled = serial2_cfg->com_index < 0;
+            if (ImGui::Selectable(u8"ä¸ä½¿ç”¨", is_disabled))
+            {
+                serial2_cfg->com_index = -1;
+            }
+            if (is_disabled)
+                ImGui::SetItemDefaultFocus();
+
             for (size_t n = 0; n < m_vec_coms.size(); n++)
             {
-                const bool is_selected = (serial2_cfg->com_index == n);
+                const bool is_selected = (serial2_cfg->com_index == static_cast<int>(n));
                 if (ImGui::Selectable(m_vec_coms[n].c_str(), is_selected))
                 {
-                    serial2_cfg->com_index = n;
+                    serial2_cfg->com_index = static_cast<int>(n);
                 }
 
                 // Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
@@ -202,7 +227,7 @@ void UICOMMonitor::Draw()
             }
             ImGui::EndCombo();
         }
-        if (ImGui::Combo(u8"´®¿Ú2²¨ÌØÂÊ", (int*)&serial2_cfg->baud_rate, u8" 9600\0 14400\0 19200\0 38400\0 56000\0 57600\0 115200\0"
+        if (ImGui::Combo(u8"ä¸²å£2æ³¢ç‰¹ç‡", (int*)&serial2_cfg->baud_rate, u8" 9600\0 14400\0 19200\0 38400\0 56000\0 57600\0 115200\0"
             u8" 230400\0 250000\0 500000\0 1000000\0 2000000\0 3000000\0 4000000\0"))
         {
         }
@@ -213,12 +238,12 @@ void UICOMMonitor::Draw()
     if (m_com1.IsConnected() || m_com2.IsConnected())
     {
         ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(1.00f, 0.40f, 0.40f, 1.00f));
-        if (ImGui::Button(u8"¶Ï¿ª", ImVec2(ImGui::GetContentRegionAvail().x - 5.0f, 80.0f)))
+        if (ImGui::Button(u8"æ–­å¼€", ImVec2(ImGui::GetContentRegionAvail().x - 5.0f, 80.0f)))
         {
-            m_update_logs_exit = true; // ÉèÖÃÍË³ö±êÖ¾£¬Í£Ö¹ÈÕÖ¾¸üĞÂÏß³Ì
+            m_update_logs_exit = true; // è®¾ç½®é€€å‡ºæ ‡å¿—ï¼Œåœæ­¢æ—¥å¿—æ›´æ–°çº¿ç¨‹
             if (m_update_logs_thread.joinable())
             {
-                m_update_logs_thread.join(); // µÈ´ıÏß³Ì½áÊø
+                m_update_logs_thread.join(); // ç­‰å¾…çº¿ç¨‹ç»“æŸ
             }
             m_com1.CloseSerialPort();
             m_com2.CloseSerialPort();
@@ -227,23 +252,48 @@ void UICOMMonitor::Draw()
     }
     else
     {
-        if (ImGui::Button(u8"Á¬½Ó", ImVec2(ImGui::GetContentRegionAvail().x - 5.0f, 80.0f)))
+        if (ImGui::Button(u8"è¿æ¥", ImVec2(ImGui::GetContentRegionAvail().x - 5.0f, 80.0f)))
         {
-            if (serial1_cfg->com_index < 0 || serial1_cfg->com_index >= m_vec_coms.size())
+            const bool use_com1 = IsValidComIndex(serial1_cfg->com_index, m_vec_coms.size());
+            const bool use_com2 = IsValidComIndex(serial2_cfg->com_index, m_vec_coms.size());
+
+            if (!use_com1 && !use_com2)
             {
-                m_warning_msg = u8"ÇëÑ¡ÔñÓĞĞ§µÄ´®¿ÚºÅ";
+                m_warning_msg = u8"è¯·è‡³å°‘é€‰æ‹©ä¸€è·¯æœ‰æ•ˆçš„ä¸²å£å·";
+                m_connect_failed_warning = true;
+            }
+            else if (use_com1 && use_com2 && serial1_cfg->com_index == serial2_cfg->com_index)
+            {
+                m_warning_msg = u8"ä¸²å£1å’Œä¸²å£2ä¸èƒ½é€‰æ‹©åŒä¸€ä¸ªCOMå£";
                 m_connect_failed_warning = true;
             }
             else
             {
-                if (!m_com1.OpenSerialPort(m_vec_coms[serial1_cfg->com_index], serial1_cfg->baud_rate) || !m_com2.OpenSerialPort(m_vec_coms[serial2_cfg->com_index], serial2_cfg->baud_rate))
+                bool open_ok = true;
+                if (use_com1)
                 {
-                    m_warning_msg = u8"´ò¿ª´®¿ÚÊ§°Ü£¬Çë¼ì²é´®¿ÚÉèÖÃ";
+                    open_ok = m_com1.OpenSerialPort(m_vec_coms[serial1_cfg->com_index], serial1_cfg->baud_rate);
+                }
+                if (open_ok && use_com2)
+                {
+                    open_ok = m_com2.OpenSerialPort(m_vec_coms[serial2_cfg->com_index], serial2_cfg->baud_rate);
+                }
+
+                if (!open_ok)
+                {
+                    m_com1.CloseSerialPort();
+                    m_com2.CloseSerialPort();
+                    m_warning_msg = u8"æ‰“å¼€ä¸²å£å¤±è´¥ï¼Œè¯·æ£€æŸ¥ä¸²å£è®¾ç½®";
                     m_connect_failed_warning = true;
                 }
                 else
                 {
-                    // Æô¶¯ÈÕÖ¾¸üĞÂÏß³Ì
+                    {
+                        std::lock_guard<std::mutex> lock(m_coms_data_lock);
+                        m_line1.clear();
+                        m_line2.clear();
+                    }
+                    // å¯åŠ¨æ—¥å¿—æ›´æ–°çº¿ç¨‹
                     if (!m_update_logs_thread.joinable())
                     {
                         m_update_logs_exit = false;
@@ -266,7 +316,7 @@ void UICOMMonitor::Draw()
         }
         if (m_connect_failed_warning)
         {
-            stbsp_sprintf(buf, u8"%s Á¬½ÓÊ§°Ü", ICON_FA_TRIANGLE_EXCLAMATION);
+            stbsp_sprintf(buf, u8"%s è¿æ¥å¤±è´¥", ICON_FA_TRIANGLE_EXCLAMATION);
             int ret = UIUtils::Inst()->ShowMessageBox(buf, m_warning_msg.c_str(), E_BTN_OK);
             if (ret != -1)
             {
@@ -275,20 +325,20 @@ void UICOMMonitor::Draw()
         }
     }
 
-    if (ImGui::CollapsingHeader(u8"COM¼à¿Ø", ImGuiTreeNodeFlags_DefaultOpen))
+    if (ImGui::CollapsingHeader(u8"COMç›‘æ§", ImGuiTreeNodeFlags_DefaultOpen))
     {
         //int slave_id = m_monitor_slave_id;
-        //stbsp_sprintf(buf, u8"¼à¿Ø´ÓÕ¾µØÖ·[1,10]");
+        //stbsp_sprintf(buf, u8"ç›‘æ§ä»ç«™åœ°å€[1,10]");
         //if (ImGui::InputInt(buf, &slave_id, 1, 2))
         //{
         //    slave_id = std::clamp(slave_id, 1, 10);
         //    m_monitor_slave_id = slave_id;
         //}
 
-        //ImGui::InputScalar(u8"²ÉÑùÊ±¼ä(ms)", ImGuiDataType_S16, &adc_info.adc_dt, NULL, NULL, "%d", ImGuiInputTextFlags_ReadOnly);
+        //ImGui::InputScalar(u8"é‡‡æ ·æ—¶é—´(ms)", ImGuiDataType_S16, &adc_info.adc_dt, NULL, NULL, "%d", ImGuiInputTextFlags_ReadOnly);
         for (int i = 0; i < CALIBRATION_STRAIN_CHANNEL_NUM; i++)
         {
-            stbsp_sprintf(buf, u8"Í¨µÀ%d²ÉÑùµçÑ¹(mV)", i + 1);
+            stbsp_sprintf(buf, u8"é€šé“%dé‡‡æ ·ç”µå‹(mV)", i + 1);
             float mv = ComInfo.com_data[i] ;
             ImGui::InputFloat(buf, &mv, 0.0f, 0.0f, "%.1f", ImGuiInputTextFlags_ReadOnly);
         }
@@ -296,11 +346,11 @@ void UICOMMonitor::Draw()
         // plot hist
         {
             static float history = 30.0f;
-            ImGui::SliderFloat(u8"PlotÊ±³¤", &history, 1, 120, "%.1f s");
+            ImGui::SliderFloat(u8"Plotæ—¶é•¿", &history, 1, 120, "%.1f s");
 
             // static ImPlotAxisFlags flags = ImPlotAxisFlags_None /*ImPlotAxisFlags_NoTickLabels*/;
             //  cur time
-            // »ñÈ¡µ±Ç°³ÌĞòÊ±¼ä£¬×ª»¯Îª¸¡µãÊı£¬µ¥Î»ÎªÃë
+            // è·å–å½“å‰ç¨‹åºæ—¶é—´ï¼Œè½¬åŒ–ä¸ºæµ®ç‚¹æ•°ï¼Œå•ä½ä¸ºç§’
             auto now = std::chrono::steady_clock::now();
             float t = std::chrono::duration<float>(now - m_start_time).count();
 
@@ -333,26 +383,26 @@ void UICOMMonitor::Draw()
             }
         }
     }
-    if (ImGui::CollapsingHeader(u8"Êı¾İ´æ´¢", ImGuiTreeNodeFlags_DefaultOpen))
+    if (ImGui::CollapsingHeader(u8"æ•°æ®å­˜å‚¨", ImGuiTreeNodeFlags_DefaultOpen))
     {
-        ImGui::BeginDisabled(!m_com1.IsConnected() || !m_com2.IsConnected());
+        ImGui::BeginDisabled(!m_com1.IsConnected() && !m_com2.IsConnected());
         if (!m_start_serialize)
         {
-            stbsp_sprintf(buf, u8"%s ¿ªÊ¼²É¼¯", ICON_FA_CIRCLE_PLAY);
+            stbsp_sprintf(buf, u8"%s å¼€å§‹é‡‡é›†", ICON_FA_CIRCLE_PLAY);
             if (ImGui::Button(buf))
             {
-                // Çå¿ÕÊı¾İ
+                // æ¸…ç©ºæ•°æ®
                 {
                     std::lock_guard<std::mutex> lock(m_com_data_lock);
                     m_com_data.clear();
                 }
-                // ¿ªÊ¼²ÉÑù
+                // å¼€å§‹é‡‡æ ·
                 m_start_serialize = true;
             }
         }
         else
         {
-            stbsp_sprintf(buf, u8"%s Í£Ö¹²É¼¯", ICON_FA_CIRCLE_STOP);
+            stbsp_sprintf(buf, u8"%s åœæ­¢é‡‡é›†", ICON_FA_CIRCLE_STOP);
             if (ImGui::Button(buf))
             {
                 m_start_serialize = false;
@@ -369,25 +419,25 @@ void UICOMMonitor::Draw()
 //    {
 //        return;
 //    }
-//    // ¸üĞÂµ±Ç°ÊäÈë¼Ä´æÆ÷Êı¾İ
+//    // æ›´æ–°å½“å‰è¾“å…¥å¯„å­˜å™¨æ•°æ®
 //    {
 //        std::lock_guard<std::mutex> lock(m_adc_info_lock);
 //        m_adc_info = *adc_info;
 //    }
 //    if (m_start_serialize)
 //    {
-//        // ²ÉÑùÊı¾İĞòÁĞ»¯
+//        // é‡‡æ ·æ•°æ®åºåˆ—åŒ–
 //        {
 //            std::lock_guard<std::mutex> lock(m_vec_adc_data_lock);
 //            m_vec_adc_data.push_back(*adc_info);
 //        }
 //    }
-//    { // »æÍ¼×¨ÓÃ
-//        // »ñÈ¡µ±Ç°³ÌĞòÊ±¼ä£¬×ª»¯Îª¸¡µãÊı£¬µ¥Î»ÎªÃë
+//    { // ç»˜å›¾ä¸“ç”¨
+//        // è·å–å½“å‰ç¨‹åºæ—¶é—´ï¼Œè½¬åŒ–ä¸ºæµ®ç‚¹æ•°ï¼Œå•ä½ä¸ºç§’
 //        auto now = std::chrono::steady_clock::now();
 //        float t = std::chrono::duration<float>(now - m_start_time).count();
 //
-//        // ¸üĞÂÊı¾İ¶ÓÁĞ
+//        // æ›´æ–°æ•°æ®é˜Ÿåˆ—
 //        {
 //            std::lock_guard<std::mutex> lock(m_vec_hist_data_lock);
 //            for (int i = 0; i < ADC_CHANNEL_NUM; i++)
@@ -411,7 +461,7 @@ void UICOMMonitor::SerializeThreadFunc()
         // UpdateSerialLogs();
         {
             std::lock_guard<std::mutex> lock(m_coms_data_lock);
-            // Ö±½Ó´«Èë¶à¸ö string ±äÁ¿£¬²»ĞèÒª vector
+            // ç›´æ¥ä¼ å…¥å¤šä¸ª string å˜é‡ï¼Œä¸éœ€è¦ vector
             Line_combined = JoinAndAddFinalNewline(m_line1, m_line2, "\r\n");
 
         }
@@ -420,40 +470,40 @@ void UICOMMonitor::SerializeThreadFunc()
 
         if (m_start_serialize)
         {
-            // ´ò¿ªÎÄ¼ş
+            // æ‰“å¼€æ–‡ä»¶
             if (fp == nullptr)
             {
-                // »ñÈ¡µ±Ç°Ê±¼ä£¬¸ñÊ½Îª%Y%m%d%H%M%S
+                // è·å–å½“å‰æ—¶é—´ï¼Œæ ¼å¼ä¸º%Y%m%d%H%M%S
                 time_t now = time(0);
                 tm* ltm = localtime(&now);
                 char filename[64];
                 stbsp_sprintf(filename, "com_data_%04d%02d%02d_%02d%02d%02d.txt",
                      ltm->tm_year + 1900, ltm->tm_mon + 1, ltm->tm_mday,
                     ltm->tm_hour, ltm->tm_min, ltm->tm_sec);
-                // ´ò¿ªÎÄ¼ş
+                // æ‰“å¼€æ–‡ä»¶
                 fp = fopen(filename, "w");
                 if (fp)
                 {
-                    LOG_INFO(u8"Êı¾İ²É¼¯¿ªÊ¼£¬ÎÄ¼şÃû£º%s", filename);
+                    LOG_INFO(u8"æ•°æ®é‡‡é›†å¼€å§‹ï¼Œæ–‡ä»¶åï¼š%s", filename);
                 }
             }
-            // µÈ´ıÒ»¶ÎÊ±¼ä
+            // ç­‰å¾…ä¸€æ®µæ—¶é—´
             //std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-            // ½«Êı¾İswapµ½ÁÙÊ±±äÁ¿
+            // å°†æ•°æ®swapåˆ°ä¸´æ—¶å˜é‡
             {
                 std::lock_guard<std::mutex> lock(m_com_data_lock);
                 vec_adc_data.swap(m_com_data);
             }
-            // Ğ´ÈëÊı¾İ
+            // å†™å…¥æ•°æ®
             if (fp != nullptr)
             {
-                // Ğ´ÈëÊı¾İ
+                // å†™å…¥æ•°æ®
                 for (const auto& data : vec_adc_data)
                 {
                     for (int i = 0; i < CALIBRATION_STRAIN_CHANNEL_NUM; i++)
                     {
                         fprintf(fp, " %f", data.com_data[i] / 10.0f);
-                        // Ìí¼Ó¶ººÅ·Ö¸ô·û
+                        // æ·»åŠ é€—å·åˆ†éš”ç¬¦
                         if (i < CALIBRATION_STRAIN_CHANNEL_NUM - 1)
                         {
                             fprintf(fp, ",");
@@ -464,25 +514,25 @@ void UICOMMonitor::SerializeThreadFunc()
                 fflush(fp);
                 if (!vec_adc_data.empty())
                 {
-                    LOG_INFO(u8"Ğ´Èë%dÌõÊı¾İ...", vec_adc_data.size());
+                    LOG_INFO(u8"å†™å…¥%dæ¡æ•°æ®...", vec_adc_data.size());
                 }
-                // Çå¿Õ»º´æ
+                // æ¸…ç©ºç¼“å­˜
                 vec_adc_data.clear();
             }
         }
         else
         {
-            // ¹Ø±ÕÎÄ¼ş
+            // å…³é—­æ–‡ä»¶
             if (fp != nullptr)
             {
                 fclose(fp);
                 fp = nullptr;
-                LOG_INFO(u8"Êı¾İ²É¼¯Íê³É");
+                LOG_INFO(u8"æ•°æ®é‡‡é›†å®Œæˆ");
             }
             std::this_thread::sleep_for(std::chrono::milliseconds(100));
         }
     }
-    // ¹Ø±ÕÎÄ¼ş
+    // å…³é—­æ–‡ä»¶
     if (fp != nullptr)
     {
         fclose(fp);
@@ -492,17 +542,25 @@ void UICOMMonitor::SerializeThreadFunc()
 
 void UICOMMonitor::UpdateSerialLogs()
 {
-    // ²½Öè1£ºÏÈÔÚÍâ²¿ÎŞËø»ñÈ¡Êı¾İ£¨ÈÃ´®¿ÚÀà×Ô¼º¹ÜÀíÄÚ²¿Ëø£©
-    std::string new_line1 = m_com1.GetLog();
-    std::string new_line2 = m_com2.GetLog();
+    // æ­¥éª¤1ï¼šå…ˆåœ¨å¤–éƒ¨æ— é”è·å–æ•°æ®ï¼ˆè®©ä¸²å£ç±»è‡ªå·±ç®¡ç†å†…éƒ¨é”ï¼‰
+    std::string new_line1;
+    std::string new_line2;
+    if (m_com1.IsConnected())
+    {
+        new_line1 = m_com1.GetLog();
+    }
+    if (m_com2.IsConnected())
+    {
+        new_line2 = m_com2.GetLog();
+    }
     //LOG_INFO("%s", new_line2.c_str());
 
-    // ²½Öè2£ºÖ»ÄÃ±£»¤³ÉÔ±±äÁ¿µÄËø£¬¿ìËÙ¸³Öµ
+    // æ­¥éª¤2ï¼šåªæ‹¿ä¿æŠ¤æˆå‘˜å˜é‡çš„é”ï¼Œå¿«é€Ÿèµ‹å€¼
     std::lock_guard<std::mutex> lock(m_coms_data_lock);
 
-    // ±ÜÃâ¿Õ×Ö·û´®¸²¸ÇÓĞĞ§Êı¾İ£¨¸ù¾İÒµÎñĞèÒªÑ¡Ôñ£©
+    // é¿å…ç©ºå­—ç¬¦ä¸²è¦†ç›–æœ‰æ•ˆæ•°æ®ï¼ˆæ ¹æ®ä¸šåŠ¡éœ€è¦é€‰æ‹©ï¼‰
     if (!new_line1.empty()) {
-        m_line1 = std::move(new_line1);  // ÒÆ¶¯ÓïÒå£¬±ÜÃâ¿½±´
+        m_line1 = std::move(new_line1);  // ç§»åŠ¨è¯­ä¹‰ï¼Œé¿å…æ‹·è´
     }
     if (!new_line2.empty()) {
         m_line2 = std::move(new_line2);

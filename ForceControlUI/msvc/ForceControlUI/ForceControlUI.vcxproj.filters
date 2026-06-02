@@ -156,6 +156,9 @@
     <ClInclude Include="UIOptiTrack.h">
       <Filter>UI\IMWindows\APP</Filter>
     </ClInclude>
+    <ClInclude Include="UIOptSampling.h">
+      <Filter>UI\IMWindows\APP</Filter>
+    </ClInclude>
     <ClInclude Include="UIHypersenMonitor.h">
       <Filter>UI\IMWindows\APP</Filter>
     </ClInclude>
@@ -271,6 +274,9 @@
       <Filter>UI\IMWindows\APP</Filter>
     </ClCompile>
     <ClCompile Include="UIOptiTrack.cpp">
+      <Filter>UI\IMWindows\APP</Filter>
+    </ClCompile>
+    <ClCompile Include="UIOptSampling.cpp">
       <Filter>UI\IMWindows\APP</Filter>
     </ClCompile>
     <ClCompile Include="UIHypersenMonitor.cpp">

@@ -1,10 +1,11 @@
-#include "UIOptiTrack.h"
+ï»¿#include "UIOptiTrack.h"
 #include "UIApplication.h"
 #include <CPSAPI/CPSAPI.h>
 #include <stdio.h>
 #include <fstream>
 #include <algorithm>
 #include <filesystem>
+#include <vector>
 #include "IconsFontAwesome6.h"
 #include "UICfgParser.h"
 #include "stb/stb_sprintf.h"
@@ -22,7 +23,7 @@ inline bool EnsureSaveDirectory(const char* dir)
 	std::filesystem::create_directories(dir, ec);
 	if (ec)
 	{
-		UI_WARN(u8"´´½¨Ä¿Â¼%sÊ§°Ü£º%s", dir, ec.message().c_str());
+		UI_WARN(u8"åˆ›å»ºç›®å½•%så¤±è´¥ï¼š%s", dir, ec.message().c_str());
 		return false;
 	}
 	return true;
@@ -56,24 +57,24 @@ void UIOptiTrack::Draw()
 	}
 	char buf[64] = { 0 };
 	bool is_device_online = g_app.GetCPSApi()->IsDeviceOnline(OPT_SERVER_DEV_ID);
-	stbsp_sprintf(buf, "%s", is_device_online ? u8"ÔÚÏß" : u8"ÀëÏß");
-	ImGui::InputText(u8"·şÎñ×´Ì¬", buf, sizeof(buf), ImGuiInputTextFlags_ReadOnly);
+	stbsp_sprintf(buf, "%s", is_device_online ? u8"åœ¨çº¿" : u8"ç¦»çº¿");
+	ImGui::InputText(u8"æœåŠ¡çŠ¶æ€", buf, sizeof(buf), ImGuiInputTextFlags_ReadOnly);
 	
-	if (ImGui::CollapsingHeader(u8"Marker¼à¿Ø", ImGuiTreeNodeFlags_DefaultOpen))
+	if (ImGui::CollapsingHeader(u8"Markerç›‘æ§", ImGuiTreeNodeFlags_DefaultOpen))
 	{
-		stbsp_snprintf(buf, sizeof(buf), u8"%s ³õÊ¼»¯·şÎñ", ICON_FA_PLAY);
+		stbsp_snprintf(buf, sizeof(buf), u8"%s åˆå§‹åŒ–æœåŠ¡", ICON_FA_PLAY);
 		if (ImGui::Button(buf))
 		{
 			InitOptService();
 		}
 		ImGui::SameLine();
-		stbsp_snprintf(buf, sizeof(buf), u8"%s Í£Ö¹·şÎñ", ICON_FA_STOP);
+		stbsp_snprintf(buf, sizeof(buf), u8"%s åœæ­¢æœåŠ¡", ICON_FA_STOP);
 		if (ImGui::Button(buf))
 		{
 			StopOptService();
 		}
 
-		stbsp_snprintf(buf, sizeof(buf), u8"%s MarkerÊıÁ¿", ICON_FA_LIST_OL);
+		stbsp_snprintf(buf, sizeof(buf), u8"%s Markeræ•°é‡", ICON_FA_LIST_OL);
 		ImGui::Text(buf);
 		if (ImGui::SliderInt("N[1-15]", &m_disp_marker_count, 1, MAX_MARKER_NUM))
 		{
@@ -96,12 +97,19 @@ void UIOptiTrack::Draw()
 			if (ImGui::BeginCombo(buf, preview_value, 0))
 			{
 				{
+					std::vector<int> marker_ids;
 					std::lock_guard<std::mutex> lock(m_marker_list_lock);
 					for (int n = 0; n < m_marker_list.marker_num; n++)
 					{
-						const bool is_selected = (m_selected_ids[i] == m_marker_list.markers[n].ID);
-						if (ImGui::Selectable(std::to_string(m_marker_list.markers[n].ID).c_str(), is_selected))
-							m_selected_ids[i] = m_marker_list.markers[n].ID;
+						marker_ids.push_back(m_marker_list.markers[n].ID);
+					}
+					std::sort(marker_ids.begin(), marker_ids.end());
+
+					for (int id : marker_ids)
+					{
+						const bool is_selected = (m_selected_ids[i] == id);
+						if (ImGui::Selectable(std::to_string(id).c_str(), is_selected))
+							m_selected_ids[i] = id;
 					}
 				}
 				ImGui::EndCombo();
@@ -131,21 +139,21 @@ void UIOptiTrack::Draw()
 			ImGui::PopID();
 		}
 	}
-	if (ImGui::CollapsingHeader(u8"Êı¾İ´æ´¢", ImGuiTreeNodeFlags_DefaultOpen))
+	if (ImGui::CollapsingHeader(u8"æ•°æ®å­˜å‚¨", ImGuiTreeNodeFlags_DefaultOpen))
 	{
 		static bool is_manual = true;
 
-		if (ImGui::RadioButton(u8"µ¥´Î´æ´¢MarkerµãÊı¾İ", is_manual))
+		if (ImGui::RadioButton(u8"å•æ¬¡å­˜å‚¨Markerç‚¹æ•°æ®", is_manual))
 		{
 			is_manual = true;
 		}
 		ImGui::SameLine();
-		if (ImGui::RadioButton(u8"Á¬Ğø´æ´¢MarkerµãÊı¾İ", !is_manual))
+		if (ImGui::RadioButton(u8"è¿ç»­å­˜å‚¨Markerç‚¹æ•°æ®", !is_manual))
 		{
 			is_manual = false;
 		}
 
-		stbsp_snprintf(buf, sizeof(buf), u8"%s ÖØÖÃMarkerĞÅÏ¢", ICON_FA_ARROW_ROTATE_LEFT);
+		stbsp_snprintf(buf, sizeof(buf), u8"%s é‡ç½®Markerä¿¡æ¯", ICON_FA_ARROW_ROTATE_LEFT);
 		if (ImGui::Button(buf))
 		{
 			ResetMarkerInfo();
@@ -153,13 +161,13 @@ void UIOptiTrack::Draw()
 		ImGui::SameLine();
 		if (is_manual)
 		{
-			stbsp_snprintf(buf, sizeof(buf), u8"%s ±£´æÑ¡ÔñMarkerµã", ICON_FA_ARROW_DOWN);
+			stbsp_snprintf(buf, sizeof(buf), u8"%s ä¿å­˜é€‰æ‹©Markerç‚¹", ICON_FA_ARROW_DOWN);
 			if (ImGui::Button(buf))
 			{
 				SaveSelectedMarkers();
 			}
 			ImGui::SameLine();
-			stbsp_snprintf(buf, sizeof(buf), u8"%s ±£´æËùÓĞMarkerµã", ICON_FA_DOWN_LONG);
+			stbsp_snprintf(buf, sizeof(buf), u8"%s ä¿å­˜æ‰€æœ‰Markerç‚¹", ICON_FA_DOWN_LONG);
 			if (ImGui::Button(buf))
 			{
 				SaveAllMarkers();
@@ -169,18 +177,18 @@ void UIOptiTrack::Draw()
 		{
 			if (!m_start_serialize)
 			{
-				stbsp_sprintf(buf, u8"%s ¿ªÊ¼²É¼¯", ICON_FA_PLAY);
+				stbsp_sprintf(buf, u8"%s å¼€å§‹é‡‡é›†", ICON_FA_PLAY);
 				if (ImGui::Button(buf))
 				{
 					if (is_device_online)
 						m_start_serialize = true;
 					else
-						UI_WARN(u8"Éè±¸[%d]²»ÔÚÏß£¡", OPT_SERVER_DEV_ID);
+						UI_WARN(u8"è®¾å¤‡[%d]ä¸åœ¨çº¿ï¼", OPT_SERVER_DEV_ID);
 				}
 			}
 			else
 			{
-				stbsp_sprintf(buf, u8"%s Í£Ö¹²É¼¯", ICON_FA_STOP);
+				stbsp_sprintf(buf, u8"%s åœæ­¢é‡‡é›†", ICON_FA_STOP);
 				if (ImGui::Button(buf))
 				{
 					m_start_serialize = false;
@@ -210,7 +218,7 @@ void UIOptiTrack::OnCPSMsg(uint32_t from_id, uint32_t msg_type, const char* data
 
 void UIOptiTrack::GetSelectedMarkerData(ST_OptMarker_List& data)
 {
-	// ·µ»Ø±»Ñ¡ÔñMarkerµãµÄÊı¾İ	
+	// è¿”å›è¢«é€‰æ‹©Markerç‚¹çš„æ•°æ®	
 	for (auto id : m_selected_ids)
 	{
 		if (id >= 0)
@@ -230,11 +238,11 @@ void UIOptiTrack::OnInitRsp(uint32_t from_id, uint32_t msg_type, const char* dat
 	ST_CMDInitRsp* rsp = (ST_CMDInitRsp*)data;
 	if (rsp->rsp.error_code == 0)
 	{
-		UI_INFO(u8"[%d]-OptiTrack ·şÎñ³õÊ¼»¯³É¹¦£¡", rsp->req_no);
+		UI_INFO(u8"[%d]-OptiTrack æœåŠ¡åˆå§‹åŒ–æˆåŠŸï¼", rsp->req_no);
 	}
 	else
 	{
-		UI_ERROR(u8"[%d]-OptiTrack ·şÎñ³õÊ¼»¯Ê§°Ü£¡Ô­Òò£º[%d]-%s", rsp->req_no, rsp->rsp.error_code, rsp->rsp.error_msg);
+		UI_ERROR(u8"[%d]-OptiTrack æœåŠ¡åˆå§‹åŒ–å¤±è´¥ï¼åŸå› ï¼š[%d]-%s", rsp->req_no, rsp->rsp.error_code, rsp->rsp.error_msg);
 	}
 }
 
@@ -243,11 +251,11 @@ void UIOptiTrack::OnStopRsp(uint32_t from_id, uint32_t msg_type, const char* dat
 	ST_CMDStopRsp* rsp = (ST_CMDStopRsp*)data;
 	if (rsp->rsp.error_code == 0)
 	{
-		UI_INFO(u8"[%d]-OptiTrack ·şÎñÍ£Ö¹³É¹¦£¡", rsp->req_no);
+		UI_INFO(u8"[%d]-OptiTrack æœåŠ¡åœæ­¢æˆåŠŸï¼", rsp->req_no);
 	}
 	else
 	{
-		UI_ERROR(u8"[%d]-OptiTrack ·şÎñÍ£Ö¹Ê§°Ü£¡Ô­Òò£º[%d]-%s", rsp->req_no, rsp->rsp.error_code, rsp->rsp.error_msg);
+		UI_ERROR(u8"[%d]-OptiTrack æœåŠ¡åœæ­¢å¤±è´¥ï¼åŸå› ï¼š[%d]-%s", rsp->req_no, rsp->rsp.error_code, rsp->rsp.error_msg);
 	}
 }
 
@@ -275,7 +283,7 @@ void UIOptiTrack::SaveSelectedMarkers(const std::string& header_info)
 	if (!std::any_of(m_selected_ids.begin(), m_selected_ids.end(),
 		[](auto& idx) {	return idx >= 0; }))
 	{
-		UI_WARN(u8"Ã»ÓĞÑ¡ÔñMarkerµã£¬±£´æÊ§°Ü£¡");
+		UI_WARN(u8"æ²¡æœ‰é€‰æ‹©Markerç‚¹ï¼Œä¿å­˜å¤±è´¥ï¼");
 		return;
 	}
 	// get current time
@@ -291,7 +299,7 @@ void UIOptiTrack::SaveSelectedMarkers(const std::string& header_info)
 	std::ofstream os(buf);
 	if (!os.is_open())
 	{
-		UI_WARN(u8"´ò¿ªÎÄ¼ş%sÊ§°Ü£¡", buf);
+		UI_WARN(u8"æ‰“å¼€æ–‡ä»¶%så¤±è´¥ï¼", buf);
 		return;
 	}
 	{
@@ -315,7 +323,7 @@ void UIOptiTrack::SaveSelectedMarkers(const std::string& header_info)
 			}
 		}
 	}
-	UI_INFO(u8"±£´æÑ¡Ôñµãµ½ÎÄ¼ş%s³É¹¦£¡", buf);
+	UI_INFO(u8"ä¿å­˜é€‰æ‹©ç‚¹åˆ°æ–‡ä»¶%sæˆåŠŸï¼", buf);
 	os.close();
 }
 
@@ -323,7 +331,7 @@ void UIOptiTrack::SaveAllMarkers()
 {
 	if (m_marker_list.marker_num <= 0)
 	{
-		UI_WARN(u8"Ã»ÓĞMarkerµãÊı¾İ£¬±£´æÊ§°Ü£¡");
+		UI_WARN(u8"æ²¡æœ‰Markerç‚¹æ•°æ®ï¼Œä¿å­˜å¤±è´¥ï¼");
 		return;
 	}
 	// get current time
@@ -339,7 +347,7 @@ void UIOptiTrack::SaveAllMarkers()
 	std::ofstream os(buf);
 	if (!os.is_open())
 	{
-		UI_WARN(u8"´ò¿ªÎÄ¼ş%sÊ§°Ü£¡", buf);
+		UI_WARN(u8"æ‰“å¼€æ–‡ä»¶%så¤±è´¥ï¼", buf);
 		return;
 	}
 	{
@@ -352,12 +360,12 @@ void UIOptiTrack::SaveAllMarkers()
 				<< m_marker_list.markers[i].XYZ[2] << "\n";
 		}
 	}
-	UI_INFO(u8"±£´æËùÓĞµãµ½ÎÄ¼ş%s³É¹¦£¡", buf);
+	UI_INFO(u8"ä¿å­˜æ‰€æœ‰ç‚¹åˆ°æ–‡ä»¶%sæˆåŠŸï¼", buf);
 	os.close();
 }
 
 void UIOptiTrack::SaveVecData()
-{// UIÏß³Ìµ÷ÓÃ
+{// UIçº¿ç¨‹è°ƒç”¨
 	std::map<int, std::vector<ST_OptMarker>> vec_data;
 	{
 		std::lock_guard<std::mutex> lock(m_vec_data_lock);
@@ -381,7 +389,7 @@ void UIOptiTrack::SaveVecMarker(int id, const std::vector<ST_OptMarker>& vec)
 {
 	if (vec.empty())
 	{
-		UI_WARN(u8"Ã»ÓĞMarkerµã[%d]Êı¾İ£¬±£´æÊ§°Ü£¡", id);
+		UI_WARN(u8"æ²¡æœ‰Markerç‚¹[%d]æ•°æ®ï¼Œä¿å­˜å¤±è´¥ï¼", id);
 		return;
 	}
 	// get current time
@@ -397,7 +405,7 @@ void UIOptiTrack::SaveVecMarker(int id, const std::vector<ST_OptMarker>& vec)
 	std::ofstream os(buf);
 	if (!os.is_open())
 	{
-		UI_WARN(u8"´ò¿ªÎÄ¼ş%sÊ§°Ü£¡", buf);
+		UI_WARN(u8"æ‰“å¼€æ–‡ä»¶%så¤±è´¥ï¼", buf);
 		return;
 	}
 	{
@@ -409,7 +417,7 @@ void UIOptiTrack::SaveVecMarker(int id, const std::vector<ST_OptMarker>& vec)
 				<< vec[i].XYZ[2] << "\n";
 		}
 	}
-	UI_INFO(u8"±£´æMarkerµã[%d]%d¸öÊı¾İµ½ÎÄ¼ş%s³É¹¦£¡", id, vec.size(), buf);
+	UI_INFO(u8"ä¿å­˜Markerç‚¹[%d]%dä¸ªæ•°æ®åˆ°æ–‡ä»¶%sæˆåŠŸï¼", id, vec.size(), buf);
 	os.close();
 }
 
@@ -436,7 +444,7 @@ void UIOptiTrack::ResetMarkerInfo()
 {
 	if (!g_app.GetCPSApi()->IsDeviceOnline(OPT_SERVER_DEV_ID))
 	{
-		UI_ERROR(u8"Éè±¸[%d]²»ÔÚÏß£¡", OPT_SERVER_DEV_ID);
+		UI_ERROR(u8"è®¾å¤‡[%d]ä¸åœ¨çº¿ï¼", OPT_SERVER_DEV_ID);
 		return;
 	}
 	g_app.GetCPSApi()->SendAPPMsg(OPT_SERVER_DEV_ID, MSG_RESET_MARKER_ID, NULL, 0);
@@ -446,10 +454,10 @@ void UIOptiTrack::InitOptService()
 {
 	if (!g_app.GetCPSApi()->IsDeviceOnline(OPT_SERVER_DEV_ID))
 	{
-		UI_ERROR(u8"Éè±¸[%d]²»ÔÚÏß£¡", OPT_SERVER_DEV_ID);
+		UI_ERROR(u8"è®¾å¤‡[%d]ä¸åœ¨çº¿ï¼", OPT_SERVER_DEV_ID);
 		return;
 	}
-	ST_CMDInit req = { m_req_id++ };
+	ST_CMDInit req = { static_cast<int>(m_req_id++) };
 	g_app.GetCPSApi()->SendAPPMsg(OPT_SERVER_DEV_ID, MSG_CMD_INIT, (const char*)&req, sizeof(ST_CMDInit));
 }
 
@@ -457,9 +465,9 @@ void UIOptiTrack::StopOptService()
 {
 	if (!g_app.GetCPSApi()->IsDeviceOnline(OPT_SERVER_DEV_ID))
 	{
-		UI_ERROR(u8"Éè±¸[%d]²»ÔÚÏß£¡", OPT_SERVER_DEV_ID);
+		UI_ERROR(u8"è®¾å¤‡[%d]ä¸åœ¨çº¿ï¼", OPT_SERVER_DEV_ID);
 		return;
 	}
-	ST_CMDStop req = { m_req_id++ };
+	ST_CMDStop req = { static_cast<int>(m_req_id++) };
 	g_app.GetCPSApi()->SendAPPMsg(OPT_SERVER_DEV_ID, MSG_CMD_STOP, (const char*)&req, sizeof(ST_CMDStop));
 }

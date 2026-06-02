@@ -1,4 +1,4 @@
-#include "UICfgParser.h"
+﻿#include "UICfgParser.h"
 #include <fstream>
 #include "TimeCounter.h"
 #include "Config.h"
@@ -44,11 +44,13 @@ bool UICfgParser::LoadCfg()
 				m_serial_cfg.baud_rate = GetBaudRateEnum(cfg["serial"]["baud_rate"].template get<int>());
 				m_serial_cfg.com_index = cfg["serial"]["com_index"].template get<int>();
 
-				m_com1_serial_cfg.baud_rate = GetBaudRateEnum(cfg["serial"]["baud_rate"].template get<int>());
-				m_com1_serial_cfg.com_index = cfg["serial"]["com_index"].template get<int>();
+				const json& com1_serial_cfg = cfg.contains("com1_serial") ? cfg["com1_serial"] : cfg["serial"];
+				m_com1_serial_cfg.baud_rate = GetBaudRateEnum(com1_serial_cfg["baud_rate"].template get<int>());
+				m_com1_serial_cfg.com_index = com1_serial_cfg["com_index"].template get<int>();
 
-				m_com2_serial_cfg.baud_rate = GetBaudRateEnum(cfg["serial"]["baud_rate"].template get<int>());
-				m_com2_serial_cfg.com_index = cfg["serial"]["com_index"].template get<int>();
+				const json& com2_serial_cfg = cfg.contains("com2_serial") ? cfg["com2_serial"] : cfg["serial"];
+				m_com2_serial_cfg.baud_rate = GetBaudRateEnum(com2_serial_cfg["baud_rate"].template get<int>());
+				m_com2_serial_cfg.com_index = com2_serial_cfg["com_index"].template get<int>();
 
                 m_adc_serial_cfg.baud_rate = GetBaudRateEnum(cfg["adc_serial"]["baud_rate"].template get<int>());
                 m_adc_serial_cfg.com_index = cfg["adc_serial"]["com_index"].template get<int>();
@@ -90,11 +92,11 @@ void UICfgParser::SaveCfg()
 				cfg["serial"]["baud_rate"] = GetBaudRate(m_serial_cfg.baud_rate);
 				cfg["serial"]["com_index"] = m_serial_cfg.com_index;
 
-				cfg["serial"]["baud_rate"] = GetBaudRate(m_com1_serial_cfg.baud_rate);
-				cfg["serial"]["com_index"] = m_com1_serial_cfg.com_index;
+				cfg["com1_serial"]["baud_rate"] = GetBaudRate(m_com1_serial_cfg.baud_rate);
+				cfg["com1_serial"]["com_index"] = m_com1_serial_cfg.com_index;
 
-				cfg["serial"]["baud_rate"] = GetBaudRate(m_com2_serial_cfg.baud_rate);
-				cfg["serial"]["com_index"] = m_com2_serial_cfg.com_index;
+				cfg["com2_serial"]["baud_rate"] = GetBaudRate(m_com2_serial_cfg.baud_rate);
+				cfg["com2_serial"]["com_index"] = m_com2_serial_cfg.com_index;
 
                 cfg["adc_serial"]["baud_rate"] = GetBaudRate(m_adc_serial_cfg.baud_rate);
                 cfg["adc_serial"]["com_index"] = m_adc_serial_cfg.com_index;

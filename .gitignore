@@ -12,13 +12,13 @@ Thumbs.db
 *.sln.docstates
 
 # Build output directories
-ForceControlUI_BLE/msvc/**/[Bb]in/
-ForceControlUI_BLE/msvc/**/[Oo]bj/
-ForceControlUI_BLE/msvc/**/[Dd]ebug*/
-ForceControlUI_BLE/msvc/**/[Rr]elease*/
-ForceControlUI_BLE/msvc/**/x64/
-ForceControlUI_BLE/msvc/**/Win32/
-ForceControlUI_BLE/bin64/
+ForceControlUI*/msvc/**/[Bb]in/
+ForceControlUI*/msvc/**/[Oo]bj/
+ForceControlUI*/msvc/**/[Dd]ebug*/
+ForceControlUI*/msvc/**/[Rr]elease*/
+ForceControlUI*/msvc/**/x64/
+ForceControlUI*/msvc/**/Win32/
+ForceControlUI*/bin64/
 
 # MSVC intermediate/debug artifacts
 *.obj

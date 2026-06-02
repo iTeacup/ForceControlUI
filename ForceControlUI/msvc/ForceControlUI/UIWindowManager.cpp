@@ -31,6 +31,7 @@
 #include "UIBeamCalibration.h"
 #include "UICOMMonitor.h"
 #include "UIBLEMonitor.h"
+#include "UIOptSampling.h"
 
 UIWindowManager::UIWindowManager(UIMainWindow* ui_main):
 	UIWindowManagerBase(ui_main)
@@ -161,6 +162,10 @@ void UIWindowManager::InitWindows()
 	stbsp_sprintf(buf, u8"%s À¶ÑÀ¼à¿Ø", ICON_FA_SIGNAL);
 	m_ui_ble_monitor = new UIBLEMonitor(m_ui_main, buf);
 	m_win_list.push_back(m_ui_ble_monitor);
+
+	stbsp_sprintf(buf, u8"%s Opt²ÉÑù", ICON_FA_FILE_CSV);
+	m_ui_opt_sampling = new UIOptSampling(m_ui_main, buf);
+	m_win_list.push_back(m_ui_opt_sampling);
 
     //stbsp_sprintf(buf, u8"%s Hypersen", ICON_FA_DRUM_STEELPAN);
     //m_ui_hypersen = new UIHypersenMonitor(m_ui_main, buf);
@@ -365,6 +370,7 @@ void UIWindowManager::ResetLayout()
     m_ui_adc->Show();
 	m_ui_com->Show();
 	m_ui_ble_monitor->Show();
+	m_ui_opt_sampling->Show();
 	
     //m_ui_hypersen->Show();
     //m_ui_yhgripper->Show();
@@ -382,6 +388,7 @@ void UIWindowManager::ResetLayout()
     ImGui::DockBuilderDockWindow(m_ui_adc->GetWinTitle(), dock_main_id);
 	ImGui::DockBuilderDockWindow(m_ui_com->GetWinTitle(), dock_main_id);
 	ImGui::DockBuilderDockWindow(m_ui_ble_monitor->GetWinTitle(), dock_main_id);
+	ImGui::DockBuilderDockWindow(m_ui_opt_sampling->GetWinTitle(), dock_main_id);
     //ImGui::DockBuilderDockWindow(m_ui_hypersen->GetWinTitle(), dock_main_id);
     //ImGui::DockBuilderDockWindow(m_ui_yhgripper->GetWinTitle(), dock_main_id);
     ImGui::DockBuilderDockWindow(m_ui_urobot->GetWinTitle(), dock_main_id);

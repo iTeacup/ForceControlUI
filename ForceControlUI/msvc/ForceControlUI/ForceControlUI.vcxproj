@@ -131,6 +131,7 @@
     <ClInclude Include="UIImageView.h" />
     <ClInclude Include="UILQYExp.h" />
     <ClInclude Include="UIMotorControl.h" />
+    <ClInclude Include="UIOptSampling.h" />
     <ClInclude Include="UIOptiTrack.h" />
     <ClInclude Include="UIOtherSensors.h" />
     <ClInclude Include="UIPipeRobot.h" />
@@ -173,6 +174,7 @@
     <ClCompile Include="UIImageView.cpp" />
     <ClCompile Include="UILQYExp.cpp" />
     <ClCompile Include="UIMotorControl.cpp" />
+    <ClCompile Include="UIOptSampling.cpp" />
     <ClCompile Include="UIOptiTrack.cpp" />
     <ClCompile Include="UIOtherSensors.cpp" />
     <ClCompile Include="UIPipeRobot.cpp" />

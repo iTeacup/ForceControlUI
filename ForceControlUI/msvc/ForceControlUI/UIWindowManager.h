@@ -15,6 +15,7 @@ class UISerialCon;
 class UIADCMonitor;
 class UICOMMonitor;
 class UIBLEMonitor;
+class UIOptSampling;
 class UIMotorControl;
 class UIURobot;
 class UIOptiTrack;
@@ -87,6 +88,7 @@ protected:
 
 	UICOMMonitor* m_ui_com = nullptr;
 	UIBLEMonitor* m_ui_ble_monitor = nullptr;
+	UIOptSampling* m_ui_opt_sampling = nullptr;
 
     UIHypersenMonitor* m_ui_hypersen = nullptr;
     UIYHGripper* m_ui_yhgripper = nullptr;
