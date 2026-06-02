@@ -1,0 +1,43 @@
+# OS/editor noise
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Visual Studio user state
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Build output directories
+ForceControlUI_BLE/msvc/**/[Bb]in/
+ForceControlUI_BLE/msvc/**/[Oo]bj/
+ForceControlUI_BLE/msvc/**/[Dd]ebug*/
+ForceControlUI_BLE/msvc/**/[Rr]elease*/
+ForceControlUI_BLE/msvc/**/x64/
+ForceControlUI_BLE/msvc/**/Win32/
+ForceControlUI_BLE/bin64/
+
+# MSVC intermediate/debug artifacts
+*.obj
+*.pch
+*.pdb
+*.ilk
+*.idb
+*.ipch
+*.iobj
+*.ipdb
+*.tlog
+*.lastbuildstate
+*.recipe
+
+# CMake output
+CMakeFiles/
+CMakeCache.txt
+cmake-build-*/
+
+# Python cache
+__pycache__/
+*.py[cod]
