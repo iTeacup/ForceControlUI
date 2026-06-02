@@ -1,0 +1,66 @@
+[
+  {
+    "id": 256,
+    "name": "DEV_MIN",
+    "type": 1280,
+    "desc": "",
+    "author": "",
+    "enable": true
+  },
+  {
+    "id": 772,
+    "name": "OpticalTracker",
+    "type": 1280,
+    "desc": "OpticalTracker",
+    "author": "",
+    "enable": true
+  },
+  {
+    "id": 773,
+    "name": "SensorServer",
+    "type": 1280,
+    "desc": "SensorServer",
+    "author": "",
+    "enable": true
+  },
+  {
+    "id": 774,
+    "name": "HypersenServer",
+    "type": 1280,
+    "desc": "HypersenServer",
+    "author": "",
+    "enable": true
+  },
+  {
+    "id": 775,
+    "name": "FinrayCalcServer",
+    "type": 1280,
+    "desc": "FinrayCalcServer",
+    "author": "",
+    "enable": true
+  },
+  {
+    "id": 776,
+    "name": "PipeRobot",
+    "type": 1280,
+    "desc": "PipeRobot",
+    "author": "",
+    "enable": true
+  },
+  {
+    "id": 777,
+    "name": "SRISensor",
+    "type": 1280,
+    "desc": "SRISensor",
+    "author": "",
+    "enable": true
+  },
+  {
+    "id": 4096,
+    "name": "DEV_MAX",
+    "type": 1280,
+    "desc": "",
+    "author": "",
+    "enable": true
+  }
+]

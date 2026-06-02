@@ -1,0 +1,92 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="源文件">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="头文件">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="资源文件">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="SRI">
+      <UniqueIdentifier>{dfb69690-f041-4225-b3c9-5cf687fbc2bd}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\include\CPSSRISensorDef.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="sriRDSerial\sriCommATParser.h">
+      <Filter>SRI</Filter>
+    </ClInclude>
+    <ClInclude Include="sriRDSerial\sriCommCircularBuffer.h">
+      <Filter>SRI</Filter>
+    </ClInclude>
+    <ClInclude Include="sriRDSerial\sriCommDefine.h">
+      <Filter>SRI</Filter>
+    </ClInclude>
+    <ClInclude Include="sriRDSerial\sriCommM8218Parser.h">
+      <Filter>SRI</Filter>
+    </ClInclude>
+    <ClInclude Include="sriRDSerial\sriCommManager.h">
+      <Filter>SRI</Filter>
+    </ClInclude>
+    <ClInclude Include="sriRDSerial\sriCommParser.h">
+      <Filter>SRI</Filter>
+    </ClInclude>
+    <ClInclude Include="sriRDSerial\sriCommSerial.h">
+      <Filter>SRI</Filter>
+    </ClInclude>
+    <ClInclude Include="sriRDSerial\sriCommTCPClient.h">
+      <Filter>SRI</Filter>
+    </ClInclude>
+    <ClInclude Include="SRICPSHandler.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="SRICfgParser.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="main.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="sriRDSerial\sriCommATParser.cpp">
+      <Filter>SRI</Filter>
+    </ClCompile>
+    <ClCompile Include="sriRDSerial\sriCommCircularBuffer.cpp">
+      <Filter>SRI</Filter>
+    </ClCompile>
+    <ClCompile Include="sriRDSerial\sriCommM8218Parser.cpp">
+      <Filter>SRI</Filter>
+    </ClCompile>
+    <ClCompile Include="sriRDSerial\sriCommManager.cpp">
+      <Filter>SRI</Filter>
+    </ClCompile>
+    <ClCompile Include="sriRDSerial\sriCommParser.cpp">
+      <Filter>SRI</Filter>
+    </ClCompile>
+    <ClCompile Include="sriRDSerial\sriCommSerial.cpp">
+      <Filter>SRI</Filter>
+    </ClCompile>
+    <ClCompile Include="sriRDSerial\sriCommTCPClient.cpp">
+      <Filter>SRI</Filter>
+    </ClCompile>
+    <ClCompile Include="SRICPSHandler.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="SRICfgParser.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\bin64\sricfg.json">
+      <Filter>资源文件</Filter>
+    </None>
+  </ItemGroup>
+</Project>

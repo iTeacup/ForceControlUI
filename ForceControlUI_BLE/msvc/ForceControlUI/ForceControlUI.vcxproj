@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>16.0</VCProjectVersion>
+    <ProjectGuid>{84ce4d20-b32e-4112-8b03-5dde86d4b873}</ProjectGuid>
+    <RootNamespace>ForceControlUI</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings"></ImportGroup>
+  <ImportGroup Label="Shared"></ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <LinkIncremental>true</LinkIncremental>
+    <OutDir>..\..\bin64\</OutDir>
+    <TargetName>$(ProjectName)d</TargetName>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <LinkIncremental>false</LinkIncremental>
+    <OutDir>..\..\bin64\</OutDir>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>FMT_HEADER_ONLY;FMT_UNICODE=0;_CRT_SECURE_NO_WARNINGS;_WIN32_WINNT=0x0601;CUSTOM_IMGUIFILEDIALOG_CONFIG="ImGuiFileDialog/CustomImGuiFileDialogConfig.h";_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>..\..\deps\boost;..\..\include;..\..\share;..\..\deps\spdlog\include;..\..\deps;..\..\deps\imgui;..\..\deps\fmt\include;..\..\deps\nlohmann\include</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <AdditionalOptions>/Zc:char8_t- %(AdditionalOptions)</AdditionalOptions>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>..\..\lib64</AdditionalLibraryDirectories>
+      <AdditionalDependencies>Dwmapi.lib;windowsapp.lib;libUId.lib;rtded.lib;modbus.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+    <PreBuildEvent>
+      <Command></Command>
+    </PreBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>FMT_HEADER_ONLY;FMT_UNICODE=0;_CRT_SECURE_NO_WARNINGS;_WIN32_WINNT=0x0601;CUSTOM_IMGUIFILEDIALOG_CONFIG="ImGuiFileDialog/CustomImGuiFileDialogConfig.h";NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>..\..\deps\boost;..\..\include;..\..\share;..\..\deps\spdlog\include;..\..\deps;..\..\deps\imgui;..\..\deps\fmt\include;..\..\deps\nlohmann\include</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <AdditionalOptions>/Zc:char8_t- %(AdditionalOptions)</AdditionalOptions>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>..\..\lib64;</AdditionalLibraryDirectories>
+      <AdditionalDependencies>Dwmapi.lib;windowsapp.lib;libUI.lib;rtde.lib;modbus.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <EntryPointSymbol>mainCRTStartup</EntryPointSymbol>
+    </Link>
+    <PreBuildEvent>
+      <Command></Command>
+    </PreBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\include\common_datadef.h" />
+    <ClInclude Include="..\..\include\CPSAPI\CPSAPI.h" />
+    <ClInclude Include="..\..\include\CPSAPI\CPSDef.h" />
+    <ClInclude Include="..\..\include\CPSCfg.h" />
+    <ClInclude Include="..\..\include\CPSOptServerDef.h" />
+    <ClInclude Include="..\..\include\ModbusDef.h" />
+    <ClInclude Include="..\..\share\AsyncSerial.h" />
+    <ClInclude Include="..\..\share\BufferedAsyncSerial.h" />
+    <ClInclude Include="..\..\share\Config.h" />
+    <ClInclude Include="..\..\share\UIDef.h" />
+    <ClInclude Include="CPSHandler.h" />
+    <ClInclude Include="HypersenDef.h" />
+    <ClInclude Include="HypersenProxy.h" />
+    <ClInclude Include="ModbusProxy.h" />
+    <ClInclude Include="resource.h" />
+    <ClInclude Include="SerialADCReader.h" />
+    <ClInclude Include="SerialLogReader.h" />
+    <ClInclude Include="SerialOtherReader.h" />
+    <ClInclude Include="Title.h" />
+    <ClInclude Include="UIADCMonitor.h" />
+    <ClInclude Include="UIADCSerialCon.h" />
+    <ClInclude Include="UIApplication.h" />
+    <ClInclude Include="UIBeamCalibration.h" />
+    <ClInclude Include="UICfgParser.h" />
+    <ClInclude Include="UICharDef.h" />
+    <ClInclude Include="UICOMMonitor.h" />
+    <ClInclude Include="UIBLEMonitor.h" />
+    <ClInclude Include="UIConnectionSettings.h" />
+    <ClInclude Include="UIHelpAbout.h" />
+    <ClInclude Include="UIHypersenMonitor.h" />
+    <ClInclude Include="UIImageDef.h" />
+    <ClInclude Include="UIImageView.h" />
+    <ClInclude Include="UILQYExp.h" />
+    <ClInclude Include="UIMotorControl.h" />
+    <ClInclude Include="UIOptiTrack.h" />
+    <ClInclude Include="UIOtherSensors.h" />
+    <ClInclude Include="UIPipeRobot.h" />
+    <ClInclude Include="UIPlotDef.h" />
+    <ClInclude Include="UISerialCon.h" />
+    <ClInclude Include="UISysSettings.h" />
+    <ClInclude Include="UIURobot.h" />
+    <ClInclude Include="UIWindowManager.h" />
+    <ClInclude Include="UIYHGripper.h" />
+    <ClInclude Include="URDef.h" />
+    <ClInclude Include="URManager.h" />
+    <ClInclude Include="Version.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="ForceControlUI.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="app.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\share\AsyncSerial.cpp" />
+    <ClCompile Include="..\..\share\BufferedAsyncSerial.cpp" />
+    <ClCompile Include="CPSHandler.cpp" />
+    <ClCompile Include="HypersenProxy.cpp" />
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="ModbusProxy.cpp" />
+    <ClCompile Include="SerialADCReader.cpp" />
+    <ClCompile Include="SerialLogReader.cpp" />
+    <ClCompile Include="SerialOtherReader.cpp" />
+    <ClCompile Include="UIADCMonitor.cpp" />
+    <ClCompile Include="UIADCSerialCon.cpp" />
+    <ClCompile Include="UIApplication.cpp" />
+    <ClCompile Include="UIBeamCalibration.cpp" />
+    <ClCompile Include="UICfgParser.cpp" />
+    <ClCompile Include="UICOMMonitor.cpp" />
+    <ClCompile Include="UIBLEMonitor.cpp" />
+    <ClCompile Include="UIConnectionSettings.cpp" />
+    <ClCompile Include="UIHelpAbout.cpp" />
+    <ClCompile Include="UIHypersenMonitor.cpp" />
+    <ClCompile Include="UIImageView.cpp" />
+    <ClCompile Include="UILQYExp.cpp" />
+    <ClCompile Include="UIMotorControl.cpp" />
+    <ClCompile Include="UIOptiTrack.cpp" />
+    <ClCompile Include="UIOtherSensors.cpp" />
+    <ClCompile Include="UIPipeRobot.cpp" />
+    <ClCompile Include="UISerialCon.cpp" />
+    <ClCompile Include="UISysSettings.cpp" />
+    <ClCompile Include="UIURobot.cpp" />
+    <ClCompile Include="UIWindowManager.cpp" />
+    <ClCompile Include="UIYHGripper.cpp" />
+    <ClCompile Include="URManager.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\bin64\uicfg.json" />
+    <None Include="GenCharDef.py" />
+    <None Include="UpdateVersion.py" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets"></ImportGroup>
+</Project>

@@ -1,0 +1,321 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="CPS">
+      <UniqueIdentifier>{d47a8935-7078-4f95-85aa-d6fab314b699}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="UI">
+      <UniqueIdentifier>{6bc7d9a0-49b5-45f6-8313-ed4fe0e0bbff}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="UI\Framework">
+      <UniqueIdentifier>{76ced67c-d6d7-40f3-8c9b-e022407b05dd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Main">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Main\Init">
+      <UniqueIdentifier>{75882295-4f5c-40b1-b8b9-643b02d60190}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Defines">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="UI\IMWindows">
+      <UniqueIdentifier>{8e7a4180-38c5-4144-8a40-3422d272d7e5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="UI\IMWindows\Sys">
+      <UniqueIdentifier>{57af07ff-38e5-467b-94c4-5f1e64eb9400}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="UI\IMWindows\View">
+      <UniqueIdentifier>{e2908ee9-0175-4c59-ac34-8d4301b92111}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="UI\IMWindows\Help">
+      <UniqueIdentifier>{a19c64af-4be5-4338-9729-1ff7a2a29ed0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="UI\IMWindows\Popup">
+      <UniqueIdentifier>{36790097-cf76-4b9e-a8b4-a72c6bce98a1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="UI\IMWindows\Tool">
+      <UniqueIdentifier>{8de4ee9d-a920-41d9-9367-857cd76de02c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Tools">
+      <UniqueIdentifier>{acd277a2-bc5e-4003-8340-6e3c1f72e678}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Modbus">
+      <UniqueIdentifier>{225e8c55-cc5a-464c-851f-39347773831a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="UI\IMWindows\APP">
+      <UniqueIdentifier>{acc8c879-1ef2-4d73-9852-1aa92add240d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Serial">
+      <UniqueIdentifier>{2d49ca28-9acc-4b45-93fc-c4889a1fdd49}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Hypersen">
+      <UniqueIdentifier>{9e61f194-d52d-4829-9ad1-aa94f51c58bc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="UR">
+      <UniqueIdentifier>{80b34712-0bba-47b5-bf87-bbf064898bae}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="resource.h">
+      <Filter>Defines</Filter>
+    </ClInclude>
+    <ClInclude Include="CPSHandler.h">
+      <Filter>CPS</Filter>
+    </ClInclude>
+    <ClInclude Include="UIApplication.h">
+      <Filter>UI\Framework</Filter>
+    </ClInclude>
+    <ClInclude Include="UISysSettings.h">
+      <Filter>UI\IMWindows\Sys</Filter>
+    </ClInclude>
+    <ClInclude Include="UIHelpAbout.h">
+      <Filter>UI\IMWindows\Help</Filter>
+    </ClInclude>
+    <ClInclude Include="UICfgParser.h">
+      <Filter>Main\Init</Filter>
+    </ClInclude>
+    <ClInclude Include="UIWindowManager.h">
+      <Filter>UI\Framework</Filter>
+    </ClInclude>
+    <ClInclude Include="Version.h">
+      <Filter>Defines</Filter>
+    </ClInclude>
+    <ClInclude Include="Title.h">
+      <Filter>Defines</Filter>
+    </ClInclude>
+    <ClInclude Include="UIImageView.h">
+      <Filter>UI\IMWindows\Popup</Filter>
+    </ClInclude>
+    <ClInclude Include="UICharDef.h">
+      <Filter>Defines</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\share\UIDef.h">
+      <Filter>Defines</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\share\Config.h">
+      <Filter>Defines</Filter>
+    </ClInclude>
+    <ClInclude Include="UIImageDef.h">
+      <Filter>Defines</Filter>
+    </ClInclude>
+    <ClInclude Include="ModbusProxy.h">
+      <Filter>Modbus</Filter>
+    </ClInclude>
+    <ClInclude Include="UIConnectionSettings.h">
+      <Filter>UI\IMWindows\Tool</Filter>
+    </ClInclude>
+    <ClInclude Include="UIPlotDef.h">
+      <Filter>Defines</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\share\AsyncSerial.h">
+      <Filter>Serial</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\share\BufferedAsyncSerial.h">
+      <Filter>Serial</Filter>
+    </ClInclude>
+    <ClInclude Include="SerialLogReader.h">
+      <Filter>Serial</Filter>
+    </ClInclude>
+    <ClInclude Include="UISerialCon.h">
+      <Filter>UI\IMWindows\Tool</Filter>
+    </ClInclude>
+    <ClInclude Include="HypersenProxy.h">
+      <Filter>Hypersen</Filter>
+    </ClInclude>
+    <ClInclude Include="HypersenDef.h">
+      <Filter>Hypersen</Filter>
+    </ClInclude>
+    <ClInclude Include="URManager.h">
+      <Filter>UR</Filter>
+    </ClInclude>
+    <ClInclude Include="URDef.h">
+      <Filter>UR</Filter>
+    </ClInclude>
+    <ClInclude Include="UIADCMonitor.h">
+      <Filter>UI\IMWindows\APP</Filter>
+    </ClInclude>
+    <ClInclude Include="UIMotorControl.h">
+      <Filter>UI\IMWindows\APP</Filter>
+    </ClInclude>
+    <ClInclude Include="UIURobot.h">
+      <Filter>UI\IMWindows\APP</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\ModbusDef.h">
+      <Filter>Modbus</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\CPSCfg.h">
+      <Filter>Defines</Filter>
+    </ClInclude>
+    <ClInclude Include="UIOptiTrack.h">
+      <Filter>UI\IMWindows\APP</Filter>
+    </ClInclude>
+    <ClInclude Include="UIHypersenMonitor.h">
+      <Filter>UI\IMWindows\APP</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\CPSOptServerDef.h">
+      <Filter>CPS</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\CPSAPI\CPSAPI.h">
+      <Filter>CPS</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\CPSAPI\CPSDef.h">
+      <Filter>CPS</Filter>
+    </ClInclude>
+    <ClInclude Include="UIPipeRobot.h">
+      <Filter>UI\IMWindows\APP</Filter>
+    </ClInclude>
+    <ClInclude Include="SerialADCReader.h">
+      <Filter>Serial</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\common_datadef.h">
+      <Filter>Defines</Filter>
+    </ClInclude>
+    <ClInclude Include="UIADCSerialCon.h">
+      <Filter>UI\IMWindows\Tool</Filter>
+    </ClInclude>
+    <ClInclude Include="SerialOtherReader.h">
+      <Filter>Serial</Filter>
+    </ClInclude>
+    <ClInclude Include="UIOtherSensors.h">
+      <Filter>UI\IMWindows\Tool</Filter>
+    </ClInclude>
+    <ClInclude Include="UIBeamCalibration.h">
+      <Filter>UI\IMWindows\APP</Filter>
+    </ClInclude>
+    <ClInclude Include="UILQYExp.h">
+      <Filter>UI\IMWindows\APP</Filter>
+    </ClInclude>
+    <ClInclude Include="UIYHGripper.h">
+      <Filter>UI\IMWindows\APP</Filter>
+    </ClInclude>
+    <ClInclude Include="UICOMMonitor.h">
+      <Filter>UI\IMWindows\APP</Filter>
+    </ClInclude>
+    <ClInclude Include="UIBLEMonitor.h">
+      <Filter>UI\IMWindows\APP</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="ForceControlUI.rc">
+      <Filter>Resource Files</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="app.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="main.cpp">
+      <Filter>Main</Filter>
+    </ClCompile>
+    <ClCompile Include="CPSHandler.cpp">
+      <Filter>CPS</Filter>
+    </ClCompile>
+    <ClCompile Include="UIApplication.cpp">
+      <Filter>UI\Framework</Filter>
+    </ClCompile>
+    <ClCompile Include="UISysSettings.cpp">
+      <Filter>UI\IMWindows\Sys</Filter>
+    </ClCompile>
+    <ClCompile Include="UIHelpAbout.cpp">
+      <Filter>UI\IMWindows\Help</Filter>
+    </ClCompile>
+    <ClCompile Include="UICfgParser.cpp">
+      <Filter>Main\Init</Filter>
+    </ClCompile>
+    <ClCompile Include="UIWindowManager.cpp">
+      <Filter>UI\Framework</Filter>
+    </ClCompile>
+    <ClCompile Include="UIImageView.cpp">
+      <Filter>UI\IMWindows\Popup</Filter>
+    </ClCompile>
+    <ClCompile Include="ModbusProxy.cpp">
+      <Filter>Modbus</Filter>
+    </ClCompile>
+    <ClCompile Include="UIConnectionSettings.cpp">
+      <Filter>UI\IMWindows\Tool</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\share\AsyncSerial.cpp">
+      <Filter>Serial</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\share\BufferedAsyncSerial.cpp">
+      <Filter>Serial</Filter>
+    </ClCompile>
+    <ClCompile Include="SerialLogReader.cpp">
+      <Filter>Serial</Filter>
+    </ClCompile>
+    <ClCompile Include="UISerialCon.cpp">
+      <Filter>UI\IMWindows\Tool</Filter>
+    </ClCompile>
+    <ClCompile Include="HypersenProxy.cpp">
+      <Filter>Hypersen</Filter>
+    </ClCompile>
+    <ClCompile Include="URManager.cpp">
+      <Filter>UR</Filter>
+    </ClCompile>
+    <ClCompile Include="UIADCMonitor.cpp">
+      <Filter>UI\IMWindows\APP</Filter>
+    </ClCompile>
+    <ClCompile Include="UIMotorControl.cpp">
+      <Filter>UI\IMWindows\APP</Filter>
+    </ClCompile>
+    <ClCompile Include="UIURobot.cpp">
+      <Filter>UI\IMWindows\APP</Filter>
+    </ClCompile>
+    <ClCompile Include="UIOptiTrack.cpp">
+      <Filter>UI\IMWindows\APP</Filter>
+    </ClCompile>
+    <ClCompile Include="UIHypersenMonitor.cpp">
+      <Filter>UI\IMWindows\APP</Filter>
+    </ClCompile>
+    <ClCompile Include="UIPipeRobot.cpp">
+      <Filter>UI\IMWindows\APP</Filter>
+    </ClCompile>
+    <ClCompile Include="SerialADCReader.cpp">
+      <Filter>Serial</Filter>
+    </ClCompile>
+    <ClCompile Include="UIADCSerialCon.cpp">
+      <Filter>UI\IMWindows\Tool</Filter>
+    </ClCompile>
+    <ClCompile Include="SerialOtherReader.cpp">
+      <Filter>Serial</Filter>
+    </ClCompile>
+    <ClCompile Include="UIOtherSensors.cpp">
+      <Filter>UI\IMWindows\Tool</Filter>
+    </ClCompile>
+    <ClCompile Include="UIBeamCalibration.cpp">
+      <Filter>UI\IMWindows\APP</Filter>
+    </ClCompile>
+    <ClCompile Include="UILQYExp.cpp">
+      <Filter>UI\IMWindows\APP</Filter>
+    </ClCompile>
+    <ClCompile Include="UIYHGripper.cpp">
+      <Filter>UI\IMWindows\APP</Filter>
+    </ClCompile>
+    <ClCompile Include="UICOMMonitor.cpp">
+      <Filter>UI\IMWindows\APP</Filter>
+    </ClCompile>
+    <ClCompile Include="UIBLEMonitor.cpp">
+      <Filter>UI\IMWindows\APP</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="UpdateVersion.py">
+      <Filter>Tools</Filter>
+    </None>
+    <None Include="GenCharDef.py">
+      <Filter>Tools</Filter>
+    </None>
+    <None Include="..\..\bin64\uicfg.json">
+      <Filter>Resource Files</Filter>
+    </None>
+  </ItemGroup>
+</Project>

@@ -1,0 +1,17 @@
+{
+  "dev_id": 777,
+  "push_freq_hz": 10,
+  "bus": {
+    "ip": "127.0.0.1",
+    "port": 4000
+  },
+  "log": {
+    "ip": "127.0.0.1",
+    "port": 4888
+  },
+  "sri": {
+    "com_port": "COM7",
+    "baud_rate": 115200,
+    "sample_rate": 60
+  }
+}

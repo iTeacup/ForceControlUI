@@ -1,0 +1,281 @@
+#include "UIADCSerialCon.h"
+#include "imgui/imgui.h"
+#include "imgui/misc/cpp/imgui_stdlib.h"
+#include "IconsFontAwesome6.h"
+#include "stb/stb_sprintf.h"
+#include "UIUtils.h"
+#include <fmt/format.h>
+#include <algorithm>
+#include <chrono>
+#include <iomanip>
+#include <sstream>
+#include "UICfgParser.h"
+
+#define EMB_MAX_COM_NUM 40
+
+UIADCSerialCon::UIADCSerialCon(UIMainWindowBase *main_win, const char *title) : UIBaseWindow(main_win, title)
+{
+    for (int i = 0; i < EMB_MAX_COM_NUM; i++)
+    {
+        if (i >= 9)
+        {
+            m_vec_coms.push_back(fmt::format("\\\\.\\COM{}", i + 1));
+        }
+        else
+        {
+            m_vec_coms.push_back(fmt::format("COM{}", i + 1));
+        }
+    }
+    // 使用 ImGuiTextBuffer 行偏移：首元素为 0
+    m_display_line_offsets.clear();
+    m_display_line_offsets.push_back(0);
+}
+
+UIADCSerialCon::~UIADCSerialCon()
+{
+    m_serial_reader.CloseSerialPort(); // 确保串口连接被关闭
+}
+
+void UIADCSerialCon::Draw()
+{
+    if (!m_show)
+    {
+        return;
+    }
+    if (!ImGui::Begin(m_win_title, &m_show, ImGuiWindowFlags_NoCollapse))
+    {
+        ImGui::End();
+        return;
+    }
+    char buf[64] = {0};
+    // 串口连接配置区域
+    ST_SerialCfg *adc_serial_cfg = &(g_cfg->m_adc_serial_cfg);
+    if (ImGui::CollapsingHeader(u8"参数设置", ImGuiTreeNodeFlags_DefaultOpen))
+    {
+        ImGui::BeginDisabled(m_serial_reader.IsConnected());
+        stbsp_sprintf(buf, u8"%s 选择串口号", ICON_FA_ADDRESS_BOOK);
+        ImGui::Text(buf);
+        const char *combo_preview_value = adc_serial_cfg->com_index >= 0 ? m_vec_coms[adc_serial_cfg->com_index].c_str() : ""; // Pass in the preview value visible before opening the combo (it could be anything)
+        if (ImGui::BeginCombo(u8"串口号", combo_preview_value, 0))
+        {
+            for (size_t n = 0; n < m_vec_coms.size(); n++)
+            {
+                const bool is_selected = (adc_serial_cfg->com_index == n);
+                if (ImGui::Selectable(m_vec_coms[n].c_str(), is_selected))
+                {
+                    adc_serial_cfg->com_index = n;
+                }
+
+                // Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
+                if (is_selected)
+                    ImGui::SetItemDefaultFocus();
+            }
+            ImGui::EndCombo();
+        }
+        if (ImGui::Combo(u8"波特率", (int *)&adc_serial_cfg->baud_rate, u8" 9600\0 14400\0 19200\0 38400\0 56000\0 57600\0 115200\0"
+                                                                        u8" 230400\0 250000\0 500000\0 921600\0 1000000\0 2000000\0 3000000\0 4000000\0"))
+        {
+        }
+        ImGui::EndDisabled();
+    }
+
+    if (m_serial_reader.IsConnected())
+    {
+        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(1.00f, 0.40f, 0.40f, 1.00f));
+        if (ImGui::Button(u8"断开", ImVec2(ImGui::GetContentRegionAvail().x - 5.0f, 80.0f)))
+        {
+            m_serial_reader.CloseSerialPort();
+        }
+        ImGui::PopStyleColor();
+    }
+    else
+    {
+        if (ImGui::Button(u8"连接", ImVec2(ImGui::GetContentRegionAvail().x - 5.0f, 80.0f)))
+        {
+            if (adc_serial_cfg->com_index < 0 || adc_serial_cfg->com_index >= m_vec_coms.size())
+            {
+                m_warning_msg = u8"请选择有效的串口号";
+                m_connect_failed_warning = true;
+            }
+            else
+            {
+                if (!m_serial_reader.OpenSerialPort(m_vec_coms[adc_serial_cfg->com_index], adc_serial_cfg->baud_rate))
+                {
+                    m_warning_msg = u8"打开串口失败，请检查串口设置";
+                    m_connect_failed_warning = true;
+                }
+                else
+                {
+                    // 设置数据回调函数
+                    m_serial_reader.RegisterADCDataCallback(std::bind(&UIADCSerialCon::ADCDataCallback, this, std::placeholders::_1));
+                }
+                // save cfg
+                g_cfg->SaveCfg();
+            }
+        }
+        if (m_connect_failed_warning)
+        {
+            stbsp_sprintf(buf, u8"%s 连接失败", ICON_FA_TRIANGLE_EXCLAMATION);
+            int ret = UIUtils::Inst()->ShowMessageBox(buf, m_warning_msg.c_str(), E_BTN_OK);
+            if (ret != -1)
+            {
+                m_connect_failed_warning = false;
+            }
+        }
+    }
+
+    // 串口输出显示区域
+    if (ImGui::CollapsingHeader(u8"串口输出", ImGuiTreeNodeFlags_DefaultOpen))
+    {
+        // 先把后台 pending 合并到 display，保证本帧显示最新
+        FlushPendingToDisplay();
+
+        // 控制选项
+        bool show_data = m_show_data.load(std::memory_order_relaxed);
+        if (ImGui::Checkbox(u8"显示数据", &show_data))
+        {
+            m_show_data.store(show_data, std::memory_order_relaxed);
+        }
+        ImGui::SameLine();
+        ImGui::Checkbox(u8"自动滚动", &m_auto_scroll);
+        ImGui::SameLine();
+        // Checkbox 操作原子变量
+        bool ts = m_show_timestamp.load(std::memory_order_relaxed);
+        if (ImGui::Checkbox(u8"显示时间", &ts))
+            m_show_timestamp.store(ts, std::memory_order_relaxed);
+        ImGui::SameLine();
+        if (ImGui::Button(u8"清空"))
+        {
+            // 清空 display 和 pending
+            {
+                std::lock_guard<std::mutex> lock(m_serial_log_mutex);
+                m_pending_buf.clear();
+            }
+            m_display_buf.clear();
+            m_display_line_offsets.clear();
+            m_display_line_offsets.push_back(0);
+        }
+        ImGui::SameLine();
+        if (ImGui::Button(u8"复制"))
+        {
+            ImGui::SetClipboardText(m_display_buf.c_str());
+        }
+
+        ImGui::SliderInt(u8"行数限制", &m_max_lines, 1, 10000, u8"%d 行");
+
+        // 显示日志统计信息
+        const int line_count = (m_display_line_offsets.Size > 0) ? (m_display_line_offsets.Size - 1) : 0;
+        ImGui::Text(u8"行数: %d / %d", line_count, m_max_lines);
+
+        // 滚动文本区域
+        ImGui::Separator();
+        ImVec2 outer_size = ImVec2(0.0f, -1.0f);
+
+        if (ImGui::BeginChild("ScrollingRegion", outer_size, true, ImGuiWindowFlags_HorizontalScrollbar))
+        {
+            ImGuiListClipper clipper;
+            clipper.Begin(line_count);
+            const char *buf_start = m_display_buf.c_str();
+            while (clipper.Step())
+            {
+                for (int line_no = clipper.DisplayStart; line_no < clipper.DisplayEnd; ++line_no)
+                {
+                    const char *line_start = buf_start + m_display_line_offsets[line_no];
+                    const char *line_end = buf_start + m_display_line_offsets[line_no + 1] - 1; // 去掉 '\n'
+                    ImGui::TextUnformatted(line_start, line_end);
+                }
+            }
+            clipper.End();
+            // 自动滚动到底部
+            if (m_auto_scroll && ImGui::GetScrollY() >= ImGui::GetScrollMaxY())
+                ImGui::SetScrollHereY(1.0f);
+        }
+        ImGui::EndChild();
+    }
+
+    ImGui::End();
+}
+
+void UIADCSerialCon::ADCDataCallback(const adc_info_t *adc_data)
+{
+    // 处理接收到的ADC数据
+    if (!adc_data || !m_show_data)
+    {
+        return;
+    }
+    std::string log_line;
+    if (m_show_timestamp)
+    {
+        // 添加时间戳
+        auto now = std::chrono::system_clock::now();
+        auto time_t = std::chrono::system_clock::to_time_t(now);
+        auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(
+                      now.time_since_epoch()) %
+                  1000;
+
+        std::ostringstream oss;
+        oss << std::put_time(std::localtime(&time_t), "[%H:%M:%S")
+            << '.' << std::setfill('0') << std::setw(3) << ms.count() << "] ";
+        log_line = oss.str();
+    }
+    // 格式化ADC数据
+    log_line += fmt::format("{} ms, [{}, {}, {}, {}, {}, {}, {}]\n",
+                            adc_data->adc_dt,
+                            adc_data->channel_data[0],
+                            adc_data->channel_data[1],
+                            adc_data->channel_data[2],
+                            adc_data->channel_data[3],
+                            adc_data->channel_data[4],
+                            adc_data->channel_data[5],
+                            adc_data->channel_data[6]);
+    // 将日志行添加到 pending_buf
+    {
+        std::lock_guard<std::mutex> lock(m_serial_log_mutex);
+        m_pending_buf.append(log_line.c_str());
+    }
+}
+
+void UIADCSerialCon::FlushPendingToDisplay()
+{
+    // 1) 合并 pending
+    int old_size = m_display_buf.Buf.Size;
+    {
+        std::lock_guard<std::mutex> lock(m_serial_log_mutex);
+        if (m_pending_buf.Buf.Size > 0)
+        {
+            m_display_buf.append(m_pending_buf.c_str());
+            m_pending_buf.clear();
+        }
+    }
+    // 2) 增量更新行偏移（只扫描新追加的部分）
+    for (int i = old_size; i < m_display_buf.Buf.Size; ++i)
+    {
+        if (m_display_buf.Buf[i] == '\n')
+            m_display_line_offsets.push_back(i + 1);
+    }
+    if (m_display_line_offsets.empty())
+        m_display_line_offsets.push_back(0);
+
+    // 3) 行数限制裁剪（批量从头裁掉多余的行，保留最后 m_max_log_lines 行）
+    const int allowed = m_max_lines + 1; // +1 保持首元素 0 的约定
+    // 加入滞后阈值，避免每帧重建大缓冲
+    const int lag_threshold = 100; // 100 行的滞后阈值
+    if (m_display_line_offsets.Size > allowed + lag_threshold)
+    {
+        const int remove_lines = m_display_line_offsets.Size - allowed;
+        const int cut_pos = m_display_line_offsets[remove_lines]; // 新的文本起始字节位置
+
+        // 重建 display_buf（保留尾部）
+        ImGuiTextBuffer new_buf;
+        new_buf.append(m_display_buf.c_str() + cut_pos);
+        m_display_buf = std::move(new_buf);
+
+        // 重建行偏移（所有偏移减去 cut_pos，并去掉前 remove_lines 个偏移）
+        ImVector<int> new_offsets;
+        new_offsets.reserve(allowed);
+        new_offsets.push_back(0);
+        for (int i = remove_lines + 1; i < m_display_line_offsets.Size; ++i)
+            new_offsets.push_back(m_display_line_offsets[i] - cut_pos);
+        m_display_line_offsets = std::move(new_offsets);
+    }
+}

@@ -1,0 +1,23 @@
+﻿{
+    "adc_serial":  {
+                       "baud_rate":  115200,
+                       "com_index":  12
+                   },
+    "app_id":  4097,
+    "bus_server":  {
+                       "ip":  "127.0.0.1",
+                       "port":  4000
+                   },
+    "log_server":  {
+                       "ip":  "",
+                       "port":  0
+                   },
+    "modbus":  {
+                   "baud_rate":  115200,
+                   "com_index":  3
+               },
+    "serial":  {
+                   "baud_rate":  115200,
+                   "com_index":  12
+               }
+}
