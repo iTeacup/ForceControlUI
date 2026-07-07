@@ -161,7 +161,7 @@ void UIBeamCalibration::StartBleConnect(SBleBeamDevice* device)
     device->stop_ble = false;
     device->last_packet_time = std::chrono::steady_clock::now();
     device->packet_count = 0;
-    device->last_packet.clear();
+    device->last_packet_text.clear();
     device->ble_thread = std::thread(&UIBeamCalibration::BleThreadFunc, this, device);
 }
 
@@ -199,34 +199,18 @@ void UIBeamCalibration::StopAllBleDevices()
 
 bool UIBeamCalibration::ParseBlePacket(const std::string& packet, ST_BeamBleData& data)
 {
-    std::stringstream ss(packet);
-    std::string token;
-    int index = 0;
-
-    while (std::getline(ss, token, ',') && index < CALIBRATION_STRAIN_CHANNEL_NUM / BEAM_NUM)
+    constexpr size_t expected_size = sizeof(uint32_t) + sizeof(float) * (CALIBRATION_STRAIN_CHANNEL_NUM / BEAM_NUM);
+    if (packet.size() != expected_size)
     {
-        token.erase(std::remove_if(token.begin(), token.end(), [](unsigned char c) {
-            return std::isspace(c) != 0;
-        }), token.end());
-
-        if (token.empty())
-        {
-            return false;
-        }
-
-        try
-        {
-            data.channel_mv[index++] = std::stof(token);
-        }
-        catch (...)
-        {
-            return false;
-        }
+        return false;
     }
 
-    return index == CALIBRATION_STRAIN_CHANNEL_NUM / BEAM_NUM;
+    const char* src = packet.data();
+    std::memcpy(&data.timestamp, src, sizeof(data.timestamp));
+    src += sizeof(data.timestamp);
+    std::memcpy(data.channel_mv, src, sizeof(data.channel_mv));
+    return true;
 }
-
 void UIBeamCalibration::OnBlePacketReceived(SBleBeamDevice* device, const std::string& packet)
 {
     if (device == nullptr)
@@ -248,7 +232,10 @@ void UIBeamCalibration::OnBlePacketReceived(SBleBeamDevice* device, const std::s
 
     {
         std::lock_guard<std::mutex> lock(device->state_lock);
-        device->last_packet = packet;
+        char packet_text[128] = { 0 };
+        stbsp_sprintf(packet_text, "%.3f, %.3f, %.3f, %.3f mV",
+            data.channel_mv[0], data.channel_mv[1], data.channel_mv[2], data.channel_mv[3]);
+        device->last_packet_text = packet_text;
         ++device->packet_count;
     }
 }
@@ -431,12 +418,12 @@ void UIBeamCalibration::DrawBleDevice(size_t index, SBleBeamDevice* device)
 
     EBleState state;
     std::string state_msg;
-    std::string last_packet;
+    std::string last_packet_text;
     {
         std::lock_guard<std::mutex> lock(device->state_lock);
         state = device->state;
         state_msg = device->state_msg;
-        last_packet = device->last_packet;
+        last_packet_text = device->last_packet_text;
     }
 
     bool busy = state == EBleState::Scanning || state == EBleState::Connecting || state == EBleState::Disconnecting;
@@ -457,9 +444,9 @@ void UIBeamCalibration::DrawBleDevice(size_t index, SBleBeamDevice* device)
     ImGui::EndDisabled();
 
     ImGui::TextWrapped(u8"状态：%s", state_msg.c_str());
-    if (!last_packet.empty())
+    if (!last_packet_text.empty())
     {
-        ImGui::TextWrapped(u8"最近数据：%s", last_packet.c_str());
+        ImGui::TextWrapped(u8"最近数据：%s", last_packet_text.c_str());
     }
 
     ImGui::BeginDisabled(m_calibration_run_flag);
@@ -482,6 +469,7 @@ void UIBeamCalibration::DrawBleDevice(size_t index, SBleBeamDevice* device)
     ImGui::EndDisabled();
 
     ImGui::Separator();
+    ImGui::InputScalar(u8"Timestamp(ms)", ImGuiDataType_U32, &data.timestamp, nullptr, nullptr, nullptr, ImGuiInputTextFlags_ReadOnly);
     for (int i = 0; i < CALIBRATION_STRAIN_CHANNEL_NUM / BEAM_NUM; ++i)
     {
         stbsp_sprintf(buf, u8"设备%zu-通道%d(mV)", index + 1, i + 1);

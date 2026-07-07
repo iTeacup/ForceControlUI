@@ -7,14 +7,9 @@
 #include "implot/implot.h"
 #include "stb/stb_sprintf.h"
 
-#include <algorithm>
-#include <array>
-#include <cctype>
 #include <cstdio>
 #include <cstring>
 #include <ctime>
-#include <iomanip>
-#include <sstream>
 
 #include <winrt/Windows.Devices.Bluetooth.Advertisement.h>
 #include <winrt/Windows.Devices.Bluetooth.GenericAttributeProfile.h>
@@ -47,8 +42,8 @@ void UIBLEMonitor::AddDevice()
     stbsp_sprintf(device->display_name, u8"BLE设备%u", device->id);
     stbsp_sprintf(device->device_name, "nRF52840_%02u", device->id);
     stbsp_sprintf(device->service_uuid, "19B1%02u00-E8F2-537E-4F6C-D104768A1214", device->id);
-    strcpy(device->characteristic_uuid, STRAIN_CHARACTERISTIC_UUID);
-    device->hist_data.resize(BLE_STRAIN_CHANNEL_NUM);
+    strcpy(device->characteristic_uuid, ADC_CHARACTERISTIC_UUID);
+    device->hist_data.resize(BLE_ADC_CHANNEL_NUM);
     device->serialize_thread = std::thread(&UIBLEMonitor::SerializeThreadFunc, this, device.get());
     m_devices.push_back(std::move(device));
 }
@@ -146,17 +141,17 @@ void UIBLEMonitor::StartConnect(SBleDeviceMonitor* device)
 
     StopConnect(device);
     device->stop_ble = false;
-    device->start_time = std::chrono::steady_clock::now();
-    device->last_packet_time = device->start_time;
     {
         std::lock_guard<std::mutex> lock(device->state_lock);
-        device->last_packet.clear();
+        device->last_packet_text.clear();
+        device->packet_hz = 0.0f;
         device->packet_count = 0;
+        device->packet_rate_start = std::chrono::steady_clock::now();
     }
     {
         std::lock_guard<std::mutex> lock(device->hist_lock);
         device->hist_data.clear();
-        device->hist_data.resize(BLE_STRAIN_CHANNEL_NUM);
+        device->hist_data.resize(BLE_ADC_CHANNEL_NUM);
     }
     device->ble_thread = std::thread(&UIBLEMonitor::BleThreadFunc, this, device);
 }
@@ -182,37 +177,28 @@ void UIBLEMonitor::StopConnect(SBleDeviceMonitor* device)
         device->ble_thread.join();
     }
     device->start_serialize = false;
+    {
+        std::lock_guard<std::mutex> lock(device->state_lock);
+        device->packet_hz = 0.0f;
+        device->packet_count = 0;
+        device->packet_rate_start = std::chrono::steady_clock::now();
+    }
     SetState(device, EBleState::Disconnected, u8"未连接");
 }
 
-bool UIBLEMonitor::ParsePacket(const std::string& packet, ST_BleStrainData& data)
+bool UIBLEMonitor::ParsePacket(const std::string& packet, ST_BleAdcData& data)
 {
-    std::stringstream ss(packet);
-    std::string token;
-    int index = 0;
-
-    while (std::getline(ss, token, ',') && index < BLE_STRAIN_CHANNEL_NUM)
+    constexpr size_t expected_size = sizeof(uint32_t) + sizeof(float) * BLE_ADC_CHANNEL_NUM;
+    if (packet.size() != expected_size)
     {
-        token.erase(std::remove_if(token.begin(), token.end(), [](unsigned char c) {
-            return std::isspace(c) != 0;
-        }), token.end());
-
-        if (token.empty())
-        {
-            return false;
-        }
-
-        try
-        {
-            data.channel_mv[index++] = std::stof(token);
-        }
-        catch (...)
-        {
-            return false;
-        }
+        return false;
     }
 
-    return index == BLE_STRAIN_CHANNEL_NUM;
+    const char* src = packet.data();
+    std::memcpy(&data.timestamp, src, sizeof(data.timestamp));
+    src += sizeof(data.timestamp);
+    std::memcpy(data.channel_mv, src, sizeof(data.channel_mv));
+    return true;
 }
 
 void UIBLEMonitor::OnPacketReceived(SBleDeviceMonitor* device, const std::string& packet)
@@ -222,7 +208,7 @@ void UIBLEMonitor::OnPacketReceived(SBleDeviceMonitor* device, const std::string
         return;
     }
 
-    ST_BleStrainData data;
+    ST_BleAdcData data;
     if (!ParsePacket(packet, data))
     {
         return;
@@ -234,18 +220,28 @@ void UIBLEMonitor::OnPacketReceived(SBleDeviceMonitor* device, const std::string
     {
         std::lock_guard<std::mutex> lock(device->data_lock);
         device->current_data = data;
-        device->last_packet_time = now;
     }
 
     {
         std::lock_guard<std::mutex> lock(device->state_lock);
-        device->last_packet = packet;
-        ++device->packet_count;
+        device->packet_count++;
+        auto rate_elapsed = std::chrono::duration<float>(now - device->packet_rate_start).count();
+        if (rate_elapsed >= 1.0f)
+        {
+            device->packet_hz = device->packet_count / rate_elapsed;
+            device->packet_count = 0;
+            device->packet_rate_start = now;
+        }
+
+        char packet_text[128] = { 0 };
+        stbsp_sprintf(packet_text, "%.3f, %.3f, %.3f, %.3f mV",
+            data.channel_mv[0], data.channel_mv[1], data.channel_mv[2], data.channel_mv[3]);
+        device->last_packet_text = packet_text;
     }
 
     {
         std::lock_guard<std::mutex> lock(device->hist_lock);
-        for (int i = 0; i < BLE_STRAIN_CHANNEL_NUM; ++i)
+        for (int i = 0; i < BLE_ADC_CHANNEL_NUM; ++i)
         {
             device->hist_data[i].AddPoint(t, data.channel_mv[i]);
         }
@@ -413,7 +409,7 @@ void UIBLEMonitor::SerializeThreadFunc(SBleDeviceMonitor* device)
     }
 
     FILE* fp = nullptr;
-    std::vector<ST_BleStrainData> pending;
+    std::vector<ST_BleAdcData> pending;
 
     while (device->serialize_run_flag)
     {
@@ -480,7 +476,7 @@ void UIBLEMonitor::DrawDevice(size_t index, SBleDeviceMonitor* device)
     }
 
     char buf[256] = { 0 };
-    ST_BleStrainData data;
+    ST_BleAdcData data;
     {
         std::lock_guard<std::mutex> lock(device->data_lock);
         data = device->current_data;
@@ -488,12 +484,14 @@ void UIBLEMonitor::DrawDevice(size_t index, SBleDeviceMonitor* device)
 
     EBleState state;
     std::string state_msg;
-    std::string last_packet;
+    std::string last_packet_text;
+    float packet_hz = 0.0f;
     {
         std::lock_guard<std::mutex> lock(device->state_lock);
         state = device->state;
         state_msg = device->state_msg;
-        last_packet = device->last_packet;
+        last_packet_text = device->last_packet_text;
+        packet_hz = device->packet_hz;
     }
 
     bool busy = state == EBleState::Scanning || state == EBleState::Connecting || state == EBleState::Disconnecting;
@@ -514,9 +512,11 @@ void UIBLEMonitor::DrawDevice(size_t index, SBleDeviceMonitor* device)
     ImGui::InputText(u8"Characteristic UUID", device->characteristic_uuid, IM_ARRAYSIZE(device->characteristic_uuid));
     ImGui::EndDisabled();
     ImGui::TextWrapped(u8"状态：%s", state_msg.c_str());
-    if (!last_packet.empty())
+    ImGui::SameLine();
+    ImGui::Text(u8"%.1f Hz", packet_hz);
+    if (!last_packet_text.empty())
     {
-        ImGui::TextWrapped(u8"最近数据：%s", last_packet.c_str());
+        ImGui::TextWrapped(u8"最近数据：%s", last_packet_text.c_str());
     }
 
     if (connected || busy)
@@ -548,7 +548,8 @@ void UIBLEMonitor::DrawDevice(size_t index, SBleDeviceMonitor* device)
     ImGui::EndDisabled();
 
     ImGui::Separator();
-    for (int i = 0; i < BLE_STRAIN_CHANNEL_NUM; ++i)
+    ImGui::InputScalar(u8"Timestamp(ms)", ImGuiDataType_U32, &data.timestamp, nullptr, nullptr, nullptr, ImGuiInputTextFlags_ReadOnly);
+    for (int i = 0; i < BLE_ADC_CHANNEL_NUM; ++i)
     {
         stbsp_sprintf(buf, u8"通道%d电压(mV)", i + 1);
         float mv = data.channel_mv[i];
@@ -557,7 +558,7 @@ void UIBLEMonitor::DrawDevice(size_t index, SBleDeviceMonitor* device)
 
     auto now = std::chrono::steady_clock::now();
     float t = std::chrono::duration<float>(now - m_plot_start_time).count();
-    std::vector<ScrollingBuffer> hist(BLE_STRAIN_CHANNEL_NUM);
+    std::vector<ScrollingBuffer> hist(BLE_ADC_CHANNEL_NUM);
     {
         std::lock_guard<std::mutex> lock(device->hist_lock);
         hist = device->hist_data;
@@ -569,7 +570,7 @@ void UIBLEMonitor::DrawDevice(size_t index, SBleDeviceMonitor* device)
         ImPlot::SetupAxes("time(s)", "mV", ImPlotAxisFlags_None, ImPlotAxisFlags_AutoFit);
         ImPlot::SetupAxisLimits(ImAxis_X1, t - m_history_seconds, t, ImGuiCond_Always);
         ImPlot::PushStyleVar(ImPlotStyleVar_LineWeight, 2);
-        for (int i = 0; i < BLE_STRAIN_CHANNEL_NUM; ++i)
+        for (int i = 0; i < BLE_ADC_CHANNEL_NUM; ++i)
         {
             if (hist[i].Data.size())
             {

@@ -6,6 +6,7 @@
 #include <array>
 #include <atomic>
 #include <chrono>
+#include <cstdint>
 #include <mutex>
 #include <string>
 #include <thread>
@@ -17,6 +18,7 @@
 
 struct ST_OptSamplingBleData
 {
+    uint32_t timestamp = 0;
     float channel_mv[OPT_SAMPLING_BLE_CHANNEL_NUM] = { 0.0f };
     double app_time_s = 0.0;
     uint64_t packet_index = 0;
@@ -50,14 +52,14 @@ private:
     {
         uint32_t id = 0;
         char display_name[64] = "BLE设备";
-        char device_name[128] = "nRF52840_Strain";
+        char device_name[128] = "nRF52840_01";
         char service_uuid[64] = "19B10000-E8F2-537E-4F6C-D104768A1214";
         char characteristic_uuid[64] = "19B10002-E8F2-537E-4F6C-D104768A1214";
 
         mutable std::mutex state_lock;
         EBleState state = EBleState::Disconnected;
         std::string state_msg = u8"未连接";
-        std::string last_packet;
+        std::string last_packet_text;
         uint64_t packet_count = 0;
 
         std::atomic_bool stop_ble = false;
@@ -86,6 +88,7 @@ private:
     bool IsBleBusyOrConnected(const SBleOptDevice& device) const;
     bool IsBleConnected(const SBleOptDevice& device) const;
     bool AreAllBleConnected() const;
+    bool IsAnyBleConnected() const;
     void StartBleConnect(SBleOptDevice* device);
     void StopBleConnect(SBleOptDevice* device);
     void StopAllBleDevices();
@@ -125,6 +128,7 @@ private:
     std::chrono::steady_clock::time_point m_time_zero = std::chrono::steady_clock::now();
     std::mutex m_record_lock;
     std::vector<SRecordRow> m_records;
+    size_t m_record_table_auto_scroll_count = 0;
 
     int m_req_id = 0;
 };

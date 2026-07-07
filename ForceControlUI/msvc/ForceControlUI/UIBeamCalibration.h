@@ -13,6 +13,7 @@
 #include <atomic>
 #include <array>
 #include <chrono>
+#include <cstdint>
 #include <vector>
 #include "ModbusProxy.h"
 #include "common_datadef.h"
@@ -30,13 +31,10 @@ struct ST_CalibrationData
 
 struct ST_BeamBleData
 {
+    uint32_t timestamp = 0;
     float channel_mv[CALIBRATION_STRAIN_CHANNEL_NUM / BEAM_NUM] = { 0.0f };
 };
 
-//struct ST_StrainGaugeData
-//{
-//    float adc_data[ADC_CHANNEL_NUM];          // 应变片数据
-//};
 
 class UIBeamCalibration : public UIBaseWindow
 {
@@ -69,14 +67,14 @@ protected:
     {
         uint32_t id = 0;
         char display_name[64] = "BLE设备";
-        char device_name[128] = "nRF52840_Strain";
+        char device_name[128] = "nRF52840_01";
         char service_uuid[64] = "19B10000-E8F2-537E-4F6C-D104768A1214";
         char characteristic_uuid[64] = "19B10002-E8F2-537E-4F6C-D104768A1214";
 
         mutable std::mutex state_lock;
         EBleState state = EBleState::Disconnected;
         std::string state_msg = u8"未连接";
-        std::string last_packet;
+        std::string last_packet_text;
         uint64_t packet_count = 0;
 
         std::atomic_bool stop_ble = false;

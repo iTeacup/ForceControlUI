@@ -171,12 +171,12 @@ void UIOptSampling::DrawBleDevice(size_t index, SBleOptDevice* device)
 
     EBleState state;
     std::string state_msg;
-    std::string last_packet;
+    std::string last_packet_text;
     {
         std::lock_guard<std::mutex> lock(device->state_lock);
         state = device->state;
         state_msg = device->state_msg;
-        last_packet = device->last_packet;
+        last_packet_text = device->last_packet_text;
     }
 
     bool busy = state == EBleState::Scanning || state == EBleState::Connecting || state == EBleState::Disconnecting;
@@ -198,9 +198,9 @@ void UIOptSampling::DrawBleDevice(size_t index, SBleOptDevice* device)
     ImGui::EndDisabled();
 
     ImGui::TextWrapped(u8"状态：%s", state_msg.c_str());
-    if (!last_packet.empty())
+    if (!last_packet_text.empty())
     {
-        ImGui::TextWrapped(u8"最近数据：%s", last_packet.c_str());
+        ImGui::TextWrapped(u8"最近数据：%s", last_packet_text.c_str());
     }
 
     ImGui::BeginDisabled(recording);
@@ -223,6 +223,7 @@ void UIOptSampling::DrawBleDevice(size_t index, SBleOptDevice* device)
     ImGui::EndDisabled();
 
     ImGui::Separator();
+    ImGui::InputScalar(u8"Timestamp(ms)", ImGuiDataType_U32, &data.timestamp, nullptr, nullptr, nullptr, ImGuiInputTextFlags_ReadOnly);
     for (int i = 0; i < OPT_SAMPLING_BLE_CHANNEL_NUM; ++i)
     {
         stbsp_sprintf(buf, u8"设备%zu-通道%d(mV)", index + 1, i + 1);
@@ -329,7 +330,7 @@ void UIOptSampling::DrawOptConfig()
 void UIOptSampling::DrawSamplingControl()
 {
     bool opt_online = g_app.GetCPSApi()->IsDeviceOnline(OPT_SERVER_DEV_ID);
-    bool ble_connected = AreAllBleConnected();
+    bool ble_connected = IsAnyBleConnected();
     bool recording = m_recording.load();
     size_t record_count = 0;
     {
@@ -465,6 +466,11 @@ void UIOptSampling::DrawRecordTable()
             }
         }
     }
+    if (m_recording.load() && records.size() != m_record_table_auto_scroll_count)
+    {
+        m_record_table_auto_scroll_count = records.size();
+        ImGui::SetScrollY(ImGui::GetScrollMaxY());
+    }
     ImGui::EndTable();
 }
 
@@ -503,6 +509,13 @@ bool UIOptSampling::AreAllBleConnected() const
     });
 }
 
+bool UIOptSampling::IsAnyBleConnected() const
+{
+    return std::any_of(m_ble_devices.begin(), m_ble_devices.end(), [this](const SBleOptDevice& device) {
+        return IsBleConnected(device);
+    });
+}
+
 void UIOptSampling::SetBleState(SBleOptDevice* device, EBleState state, const std::string& message)
 {
     if (device == nullptr)
@@ -526,7 +539,7 @@ void UIOptSampling::StartBleConnect(SBleOptDevice* device)
     device->stop_ble = false;
     {
         std::lock_guard<std::mutex> lock(device->state_lock);
-        device->last_packet.clear();
+        device->last_packet_text.clear();
         device->packet_count = 0;
     }
     {
@@ -570,32 +583,17 @@ void UIOptSampling::StopAllBleDevices()
 
 bool UIOptSampling::ParseBlePacket(const std::string& packet, ST_OptSamplingBleData& data)
 {
-    std::stringstream ss(packet);
-    std::string token;
-    int index = 0;
-
-    while (std::getline(ss, token, ',') && index < OPT_SAMPLING_BLE_CHANNEL_NUM)
+    constexpr size_t expected_size = sizeof(uint32_t) + sizeof(float) * OPT_SAMPLING_BLE_CHANNEL_NUM;
+    if (packet.size() != expected_size)
     {
-        token.erase(std::remove_if(token.begin(), token.end(), [](unsigned char c) {
-            return std::isspace(c) != 0;
-        }), token.end());
-
-        if (token.empty())
-        {
-            return false;
-        }
-
-        try
-        {
-            data.channel_mv[index++] = std::stof(token);
-        }
-        catch (...)
-        {
-            return false;
-        }
+        return false;
     }
 
-    return index == OPT_SAMPLING_BLE_CHANNEL_NUM;
+    const char* src = packet.data();
+    std::memcpy(&data.timestamp, src, sizeof(data.timestamp));
+    src += sizeof(data.timestamp);
+    std::memcpy(data.channel_mv, src, sizeof(data.channel_mv));
+    return true;
 }
 
 void UIOptSampling::OnBlePacketReceived(SBleOptDevice* device, const std::string& packet)
@@ -616,7 +614,10 @@ void UIOptSampling::OnBlePacketReceived(SBleOptDevice* device, const std::string
     {
         std::lock_guard<std::mutex> lock(device->state_lock);
         data.packet_index = ++device->packet_count;
-        device->last_packet = packet;
+        char packet_text[128] = { 0 };
+        stbsp_sprintf(packet_text, "%.3f, %.3f, %.3f, %.3f mV",
+            data.channel_mv[0], data.channel_mv[1], data.channel_mv[2], data.channel_mv[3]);
+        device->last_packet_text = packet_text;
     }
     {
         std::lock_guard<std::mutex> lock(device->data_lock);
@@ -628,6 +629,11 @@ void UIOptSampling::CopyBleData(ST_OptSamplingBleData ble[OPT_SAMPLING_BLE_DEVIC
 {
     for (size_t i = 0; i < m_ble_devices.size(); ++i)
     {
+        if (!IsBleConnected(m_ble_devices[i]))
+        {
+            ble[i] = {};
+            continue;
+        }
         std::lock_guard<std::mutex> lock(m_ble_devices[i].data_lock);
         ble[i] = m_ble_devices[i].current_data;
     }
@@ -891,9 +897,9 @@ void UIOptSampling::StartRecording()
         UI_WARN(u8"OptiTrack服务不在线，不能开始采集。");
         return;
     }
-    if (!AreAllBleConnected())
+    if (!IsAnyBleConnected())
     {
-        UI_WARN(u8"请先连接两个BLE设备。");
+        UI_WARN(u8"请至少连接一个BLE设备。");
         return;
     }
 
@@ -935,6 +941,7 @@ void UIOptSampling::SamplingThreadFunc(float interval_s)
     interval_s = std::clamp(interval_s, 0.1f, 1.0f);
     auto interval = std::chrono::duration<double>(interval_s);
     auto next_tick = m_time_zero + interval;
+    uint64_t sample_index = 1;
 
     while (m_recording.load())
     {
@@ -944,8 +951,9 @@ void UIOptSampling::SamplingThreadFunc(float interval_s)
             break;
         }
 
-        double sample_time_s = std::chrono::duration<double>(std::chrono::steady_clock::now() - m_time_zero).count();
+        double sample_time_s = static_cast<double>(sample_index) * interval_s;
         CaptureSample(sample_time_s);
+        ++sample_index;
         next_tick += interval;
     }
 }
@@ -997,6 +1005,7 @@ void UIOptSampling::ResetRecords()
 {
     std::lock_guard<std::mutex> lock(m_record_lock);
     m_records.clear();
+    m_record_table_auto_scroll_count = 0;
 }
 
 void UIOptSampling::SaveRecords()
@@ -1037,7 +1046,7 @@ void UIOptSampling::SaveRecords()
         selected_count = m_disp_marker_count;
     }
 
-    os << std::fixed << std::setprecision(6);
+    os << std::fixed << std::setprecision(3);
     os << "sample_t(s)";
     for (int i = 0; i < OPT_SAMPLING_ADC_CHANNEL_NUM; ++i)
     {
