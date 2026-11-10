@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <RuntimeDependency Include="$(MSBuildThisFileDirectory)..\runtime\cpsapi.dll" />
+    <RuntimeDependency Include="$(MSBuildThisFileDirectory)..\runtime\libbus.dll" />
+  </ItemGroup>
+  <Target Name="CopyRuntimeFiles" AfterTargets="Build">
+    <Copy SourceFiles="@(RuntimeDependency)" DestinationFolder="$(OutDir)" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="$(ProjectDir)$(RuntimeConfigName)" DestinationFolder="$(OutDir)"
+          Condition="'$(RuntimeConfigName)' != '' And !Exists('$(OutDir)$(RuntimeConfigName)')" />
+  </Target>
+</Project>

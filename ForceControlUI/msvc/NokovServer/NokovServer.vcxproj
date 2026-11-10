@@ -40,7 +40,7 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros">
-    <NokovSdkDir Condition="'$(NokovSdkDir)'==''">$(USERPROFILE)\Desktop\XING_Windows_C++_SDK_4.1.0.5634</NokovSdkDir>
+    <NokovSdkDir Condition="'$(NokovSdkDir)'==''">$(MSBuildProjectDirectory)\..\..\deps\nokov</NokovSdkDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
@@ -51,6 +51,10 @@
     <LinkIncremental>false</LinkIncremental>
     <IntDir>$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
     <OutDir>..\..\bin64\</OutDir>
+  </PropertyGroup>
+  <PropertyGroup>
+    <RuntimeConfigName>nokovcfg.json</RuntimeConfigName>
+    <LocalDebuggerWorkingDirectory>$(OutDir)</LocalDebuggerWorkingDirectory>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -100,12 +104,12 @@
     <ClInclude Include="NokovCfgParser.h" />
     <None Include="nokovcfg.json" />
   </ItemGroup>
+  <ItemGroup>
+    <RuntimeDependency Include="$(NokovSdkDir)\lib\nokov_sdk.dll" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <Import Project="..\RuntimeFiles.targets" />
   <ImportGroup Label="ExtensionTargets" />
-  <Target Name="CopyNokovRuntime" AfterTargets="Build">
-    <Copy SourceFiles="$(NokovSdkDir)\lib\nokov_sdk.dll" DestinationFolder="$(OutDir)" SkipUnchangedFiles="true" />
-    <Copy SourceFiles="$(ProjectDir)nokovcfg.json" DestinationFolder="$(OutDir)" SkipUnchangedFiles="true" Condition="!Exists('$(OutDir)nokovcfg.json')" />
-  </Target>
   <ItemGroup>
     <ClInclude Include="..\..\include\CPSNokovDef.h" />
   </ItemGroup>

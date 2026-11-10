@@ -8,7 +8,7 @@
 CSV 序列化为窗口 CPP 内部函数。
 
 运行文件为 bin64/NokovServer.exe、nokovcfg.json 和原来的 ForceControlUId.exe。
-设备 ID 为 780。构建复制 SDK DLL，已有运行配置不覆盖；可用 /p:NokovSdkDir=SDK目录 指定 SDK。
+设备 ID 为 780。默认使用仓库 deps/nokov 中的 SDK，通过公共 RuntimeFiles.targets 自动复制运行 DLL 和默认配置；已有运行配置不覆盖。仍可用 /p:NokovSdkDir=SDK目录 指定其他完整 SDK。
 
 ## 使用与行为
 

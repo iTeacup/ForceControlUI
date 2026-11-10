@@ -320,7 +320,7 @@
     <None Include="GenCharDef.py">
       <Filter>Tools</Filter>
     </None>
-    <None Include="..\..\bin64\uicfg.json">
+    <None Include="uicfg.json">
       <Filter>Resource Files</Filter>
     </None>
   </ItemGroup>

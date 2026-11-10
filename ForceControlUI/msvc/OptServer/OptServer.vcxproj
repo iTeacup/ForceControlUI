@@ -48,6 +48,10 @@
     <LinkIncremental>false</LinkIncremental>
     <OutDir>..\..\bin64\</OutDir>
   </PropertyGroup>
+  <PropertyGroup>
+    <RuntimeConfigName>optcfg.json</RuntimeConfigName>
+    <LocalDebuggerWorkingDirectory>$(OutDir)</LocalDebuggerWorkingDirectory>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
@@ -94,8 +98,12 @@
     <ClCompile Include="OptCfgParser.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\..\bin64\optcfg.json" />
+    <None Include="optcfg.json" />
+  </ItemGroup>
+  <ItemGroup>
+    <RuntimeDependency Include="$(ProjectDir)..\..\runtime\NatNetLib.dll" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <Import Project="..\RuntimeFiles.targets" />
   <ImportGroup Label="ExtensionTargets"></ImportGroup>
 </Project>

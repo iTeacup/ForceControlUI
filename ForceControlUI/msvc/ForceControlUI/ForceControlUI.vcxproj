@@ -49,6 +49,10 @@
     <LinkIncremental>false</LinkIncremental>
     <OutDir>..\..\bin64\</OutDir>
   </PropertyGroup>
+  <PropertyGroup>
+    <RuntimeConfigName>uicfg.json</RuntimeConfigName>
+    <LocalDebuggerWorkingDirectory>$(OutDir)</LocalDebuggerWorkingDirectory>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
@@ -186,11 +190,17 @@
     <ClCompile Include="URManager.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\..\bin64\uicfg.json" />
+    <None Include="uicfg.json" />
     <None Include="GenCharDef.py" />
     <None Include="UpdateVersion.py" />
   </ItemGroup>
+  <ItemGroup Condition="'$(Configuration)'=='Debug'">
+    <RuntimeDependency Include="$(ProjectDir)..\..\runtime\rtded.dll" />
+    <RuntimeDependency Include="$(ProjectDir)..\..\runtime\boost_thread-vc143-mt-gd-x64-1_88.dll" />
+    <RuntimeDependency Include="$(ProjectDir)..\..\runtime\modbus-5.dll" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <Import Project="..\RuntimeFiles.targets" />
   <ImportGroup Label="ExtensionTargets"></ImportGroup>
 <ItemGroup>
     <ClInclude Include="UINokov.h" />

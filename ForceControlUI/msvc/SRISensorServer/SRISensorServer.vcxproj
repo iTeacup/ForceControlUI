@@ -47,6 +47,10 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <OutDir>..\..\bin64\</OutDir>
   </PropertyGroup>
+  <PropertyGroup>
+    <RuntimeConfigName>sricfg.json</RuntimeConfigName>
+    <LocalDebuggerWorkingDirectory>$(OutDir)</LocalDebuggerWorkingDirectory>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
@@ -105,8 +109,9 @@
     <ClCompile Include="sriRDSerial\sriCommTCPClient.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\..\bin64\sricfg.json" />
+    <None Include="sricfg.json" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <Import Project="..\RuntimeFiles.targets" />
   <ImportGroup Label="ExtensionTargets"></ImportGroup>
 </Project>

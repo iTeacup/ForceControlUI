@@ -40,7 +40,7 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\..\bin64\optcfg.json">
+    <None Include="optcfg.json">
       <Filter>Resource Files</Filter>
     </None>
   </ItemGroup>

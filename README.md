@@ -1,3 +1,13 @@
+# 项目下载和使用
+
+Windows x64 用户安装 Visual Studio 2022 的“使用 C++ 的桌面开发”，打开 `ForceControlUI/msvc/ForceControlUI.sln`，选择 **Debug x64** 并生成解决方案。
+
+仓库已包含当前配套业务 DLL、默认配置和 NOKOV SDK 接口文件；生成时自动准备 `ForceControlUI/bin64`，无需从原开发电脑手工复制依赖。已有运行配置不会被覆盖，设备地址和串口按本机硬件修改。
+
+完整步骤见 [下载、编译与使用教程](docs/下载编译与使用.md)。
+
+---
+
 [APP开发流程.md](https://github.com/user-attachments/files/28505376/APP.md)
 # ForceControlUI 新增 IMWindows APP 开发流程
 
