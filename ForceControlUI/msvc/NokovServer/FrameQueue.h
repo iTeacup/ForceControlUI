@@ -1,6 +1,6 @@
 ﻿#pragma once
 #include <CPSNokovDef.h>
-#include <NokovSDKTypes.h>
+#include "Nokov/NokovSDKTypes.h"
 #include <deque>
 #include "MarkerNames.h"
 #include <mutex>

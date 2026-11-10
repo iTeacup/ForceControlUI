@@ -1,5 +1,5 @@
 ﻿#include <winsock2.h>
-#include <NokovSDKClient.h>
+#include "Nokov/NokovSDKClient.h"
 #include "CPSHandler.h"
 #include "ConsoleControl.h"
 #include <memory>

@@ -49,6 +49,7 @@
     <OutDir>..\..\bin64\</OutDir>
   </PropertyGroup>
   <PropertyGroup>
+    <IntDir>$(Platform)\$(Configuration)\</IntDir>
     <RuntimeConfigName>optcfg.json</RuntimeConfigName>
     <LocalDebuggerWorkingDirectory>$(OutDir)</LocalDebuggerWorkingDirectory>
   </PropertyGroup>

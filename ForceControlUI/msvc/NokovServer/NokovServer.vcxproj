@@ -1,5 +1,5 @@
-<?xml version='1.0' encoding='utf-8'?>
-<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Build">
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|x64">
       <Configuration>Debug</Configuration>
@@ -31,28 +31,25 @@
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
-  <ImportGroup Label="ExtensionSettings" />
-  <ImportGroup Label="Shared" />
+  <ImportGroup Label="ExtensionSettings"></ImportGroup>
+  <ImportGroup Label="Shared"></ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
-  <PropertyGroup Label="UserMacros">
-    <NokovSdkDir Condition="'$(NokovSdkDir)'==''">$(MSBuildProjectDirectory)\..\..\deps\nokov</NokovSdkDir>
-  </PropertyGroup>
+  <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IntDir>$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
     <OutDir>..\..\bin64\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <IntDir>$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
     <OutDir>..\..\bin64\</OutDir>
   </PropertyGroup>
   <PropertyGroup>
+    <IntDir>$(Platform)\$(Configuration)\</IntDir>
     <RuntimeConfigName>nokovcfg.json</RuntimeConfigName>
     <LocalDebuggerWorkingDirectory>$(OutDir)</LocalDebuggerWorkingDirectory>
   </PropertyGroup>
@@ -63,13 +60,13 @@
       <PreprocessorDefinitions>NOMINMAX;WIN32;_CRT_SECURE_NO_WARNINGS;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
-      <AdditionalIncludeDirectories>$(NokovSdkDir)\include;..\..\include;..\..\share;..\..\deps\nlohmann\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\include;..\..\share;..\..\deps\nlohmann\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(NokovSdkDir)\lib;..\..\lib64;</AdditionalLibraryDirectories>
-      <AdditionalDependencies>nokov_sdk.lib;ws2_32.lib;cpsapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\..\lib64;</AdditionalLibraryDirectories>
+      <AdditionalDependencies>nokov_sdk.lib;cpsapi.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -81,36 +78,36 @@
       <PreprocessorDefinitions>NOMINMAX;WIN32;_CRT_SECURE_NO_WARNINGS;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
-      <AdditionalIncludeDirectories>$(NokovSdkDir)\include;..\..\include;..\..\share;..\..\deps\nlohmann\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\include;..\..\share;..\..\deps\nlohmann\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(NokovSdkDir)\lib;..\..\lib64;</AdditionalLibraryDirectories>
-      <AdditionalDependencies>nokov_sdk.lib;ws2_32.lib;cpsapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\..\lib64;</AdditionalLibraryDirectories>
+      <AdditionalDependencies>nokov_sdk.lib;cpsapi.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="main.cpp" />
-    <ClCompile Include="NokovCfgParser.cpp" />
-  </ItemGroup>
-  <ItemGroup>
+    <ClInclude Include="..\..\include\CPSNokovDef.h" />
     <ClInclude Include="CPSHandler.h" />
     <ClInclude Include="ConsoleControl.h" />
     <ClInclude Include="FrameQueue.h" />
     <ClInclude Include="MarkerNames.h" />
     <ClInclude Include="NokovCfgParser.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="NokovCfgParser.cpp" />
+  </ItemGroup>
+  <ItemGroup>
     <None Include="nokovcfg.json" />
   </ItemGroup>
   <ItemGroup>
-    <RuntimeDependency Include="$(NokovSdkDir)\lib\nokov_sdk.dll" />
+    <RuntimeDependency Include="$(ProjectDir)..\..\runtime\nokov_sdk.dll" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <Import Project="..\RuntimeFiles.targets" />
-  <ImportGroup Label="ExtensionTargets" />
-  <ItemGroup>
-    <ClInclude Include="..\..\include\CPSNokovDef.h" />
-  </ItemGroup>
+  <ImportGroup Label="ExtensionTargets"></ImportGroup>
 </Project>

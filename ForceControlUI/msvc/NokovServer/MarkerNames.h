@@ -1,5 +1,5 @@
 ﻿#pragma once
-#include <NokovSDKTypes.h>
+#include "Nokov/NokovSDKTypes.h"
 #include <CPSNokovDef.h>
 #include <map>
 #include <string>

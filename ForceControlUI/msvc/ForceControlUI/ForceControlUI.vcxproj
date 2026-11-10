@@ -50,6 +50,7 @@
     <OutDir>..\..\bin64\</OutDir>
   </PropertyGroup>
   <PropertyGroup>
+    <IntDir>$(Platform)\$(Configuration)\</IntDir>
     <RuntimeConfigName>uicfg.json</RuntimeConfigName>
     <LocalDebuggerWorkingDirectory>$(OutDir)</LocalDebuggerWorkingDirectory>
   </PropertyGroup>
@@ -106,6 +107,7 @@
     <ClInclude Include="..\..\include\CPSAPI\CPSDef.h" />
     <ClInclude Include="..\..\include\CPSCfg.h" />
     <ClInclude Include="..\..\include\CPSOptServerDef.h" />
+    <ClInclude Include="..\..\include\CPSNokovDef.h" />
     <ClInclude Include="..\..\include\ModbusDef.h" />
     <ClInclude Include="..\..\share\AsyncSerial.h" />
     <ClInclude Include="..\..\share\BufferedAsyncSerial.h" />
@@ -135,6 +137,7 @@
     <ClInclude Include="UIImageView.h" />
     <ClInclude Include="UILQYExp.h" />
     <ClInclude Include="UIMotorControl.h" />
+    <ClInclude Include="UINokov.h" />
     <ClInclude Include="UIOptSampling.h" />
     <ClInclude Include="UIOptiTrack.h" />
     <ClInclude Include="UIOtherSensors.h" />
@@ -178,6 +181,7 @@
     <ClCompile Include="UIImageView.cpp" />
     <ClCompile Include="UILQYExp.cpp" />
     <ClCompile Include="UIMotorControl.cpp" />
+    <ClCompile Include="UINokov.cpp" />
     <ClCompile Include="UIOptSampling.cpp" />
     <ClCompile Include="UIOptiTrack.cpp" />
     <ClCompile Include="UIOtherSensors.cpp" />
@@ -202,8 +206,4 @@
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <Import Project="..\RuntimeFiles.targets" />
   <ImportGroup Label="ExtensionTargets"></ImportGroup>
-<ItemGroup>
-    <ClInclude Include="UINokov.h" />
-    <ClCompile Include="UINokov.cpp" />
-  </ItemGroup>
 </Project>

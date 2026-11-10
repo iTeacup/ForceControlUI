@@ -8,7 +8,8 @@
 CSV 序列化为窗口 CPP 内部函数。
 
 运行文件为 bin64/NokovServer.exe、nokovcfg.json 和原来的 ForceControlUId.exe。
-设备 ID 为 780。默认使用仓库 deps/nokov 中的 SDK，通过公共 RuntimeFiles.targets 自动复制运行 DLL 和默认配置；已有运行配置不覆盖。仍可用 /p:NokovSdkDir=SDK目录 指定其他完整 SDK。
+设备 ID 为 780。SDK 与 OPT 统一组织：头文件位于 share/Nokov，链接库为 lib64/nokov_sdk.lib，运行库为 runtime/nokov_sdk.dll。通过公共 RuntimeFiles.targets 自动复制运行 DLL 和默认配置；已有运行配置不覆盖。
+SDK 来源版本为 XING_Windows_C++_SDK_4.1.0.5634，保留原厂头文件和二进制内容。更换 SDK 时同时更新头文件、LIB 和 DLL。
 
 ## 使用与行为
 

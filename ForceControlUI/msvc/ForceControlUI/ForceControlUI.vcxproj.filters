@@ -165,6 +165,9 @@
     <ClInclude Include="..\..\include\CPSOptServerDef.h">
       <Filter>CPS</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\include\CPSNokovDef.h">
+      <Filter>CPS</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\include\CPSAPI\CPSAPI.h">
       <Filter>CPS</Filter>
     </ClInclude>
@@ -202,6 +205,9 @@
       <Filter>UI\IMWindows\APP</Filter>
     </ClInclude>
     <ClInclude Include="UIBLEMonitor.h">
+      <Filter>UI\IMWindows\APP</Filter>
+    </ClInclude>
+    <ClInclude Include="UINokov.h">
       <Filter>UI\IMWindows\APP</Filter>
     </ClInclude>
   </ItemGroup>
@@ -312,6 +318,9 @@
     <ClCompile Include="UIBLEMonitor.cpp">
       <Filter>UI\IMWindows\APP</Filter>
     </ClCompile>
+    <ClCompile Include="UINokov.cpp">
+      <Filter>UI\IMWindows\APP</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="UpdateVersion.py">
@@ -323,13 +332,5 @@
     <None Include="uicfg.json">
       <Filter>Resource Files</Filter>
     </None>
-  </ItemGroup>
-<ItemGroup>
-    <ClInclude Include="UINokov.h">
-      <Filter>UI\IMWindows\APP</Filter>
-    </ClInclude>
-    <ClCompile Include="UINokov.cpp">
-      <Filter>UI\IMWindows\APP</Filter>
-    </ClCompile>
   </ItemGroup>
 </Project>
