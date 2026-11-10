@@ -19,6 +19,7 @@ class UIOptSampling;
 class UIMotorControl;
 class UIURobot;
 class UIOptiTrack;
+class UINokov;
 class UIHypersenMonitor;
 class UIYHGripper;
 class UIPipeRobot;
@@ -94,6 +95,7 @@ protected:
     UIYHGripper* m_ui_yhgripper = nullptr;
     UIURobot* m_ui_urobot = nullptr;
 	UIOptiTrack* m_ui_opt = nullptr;
+    UINokov* m_ui_nokov = nullptr;
     UIPipeRobot* m_ui_piperobot = nullptr;
     UILQYExp* m_ui_lqyexp = nullptr;
     UIADCSerialCon* m_ui_adc_serial = nullptr;

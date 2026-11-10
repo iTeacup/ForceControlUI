@@ -1,4 +1,5 @@
 #include "CPSHandler.h"
+#include <CPSNokovDef.h>
 #ifdef UI_CFG_ENABLE_CPS
 #include "UIApplication.h"
 #include "UILog.h"
@@ -21,6 +22,7 @@ void CPSHandler::OnConnected()
 {
 	m_is_connected = true;
     m_cpsapi->SubscribeDevice(OPT_SERVER_DEV_ID);
+    m_cpsapi->SubscribeDevice(nokov::Device);
     m_cpsapi->SubscribeDevice(SENSOR_SERVER_DEV_ID);
     m_cpsapi->SubscribeDevice(HYPERSEN_SENSOR_DEV_ID);
     m_cpsapi->SubscribeDevice(FINRAY_CALC_SERVER_DEV_ID);

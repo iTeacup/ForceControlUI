@@ -62,5 +62,13 @@
     "desc": "",
     "author": "",
     "enable": true
+  },
+  {
+    "id": 780,
+    "name": "NokovServer",
+    "type": 1280,
+    "desc": "NOKOV",
+    "author": "",
+    "enable": true
   }
 ]

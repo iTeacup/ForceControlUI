@@ -24,6 +24,7 @@
 #include "UIYHGripper.h"
 #include "UIURobot.h"
 #include "UIOptiTrack.h"
+#include "UINokov.h"
 #include "UIPipeRobot.h"
 #include "UILQYExp.h"
 #include "UIADCSerialCon.h"
@@ -182,6 +183,9 @@ void UIWindowManager::InitWindows()
     stbsp_sprintf(buf, u8"%s OptiTrack", ICON_FA_CUBE);
     m_ui_opt = new UIOptiTrack(m_ui_main, buf);
     m_win_list.push_back(m_ui_opt);
+    stbsp_sprintf(buf, "%s NOKOV", ICON_FA_CUBE);
+    m_ui_nokov = new UINokov(m_ui_main, buf);
+    m_win_list.push_back(m_ui_nokov);
 
     //stbsp_sprintf(buf, u8"%s 管道机器人", ICON_FA_WORM);
     //m_ui_piperobot = new UIPipeRobot(m_ui_main, buf);
@@ -376,6 +380,7 @@ void UIWindowManager::ResetLayout()
     //m_ui_yhgripper->Show();
     m_ui_urobot->Show();
     m_ui_opt->Show();
+    m_ui_nokov->Show();
     //m_ui_piperobot->Show();
     //m_ui_lqyexp->Show();
 	m_ui_beamcalibration->Show();
@@ -393,6 +398,7 @@ void UIWindowManager::ResetLayout()
     //ImGui::DockBuilderDockWindow(m_ui_yhgripper->GetWinTitle(), dock_main_id);
     ImGui::DockBuilderDockWindow(m_ui_urobot->GetWinTitle(), dock_main_id);
     ImGui::DockBuilderDockWindow(m_ui_opt->GetWinTitle(), dock_main_id);
+    ImGui::DockBuilderDockWindow(m_ui_nokov->GetWinTitle(), dock_main_id);
     //ImGui::DockBuilderDockWindow(m_ui_piperobot->GetWinTitle(), dock_main_id);
     //ImGui::DockBuilderDockWindow(m_ui_lqyexp->GetWinTitle(), dock_main_id);
 	ImGui::DockBuilderDockWindow(m_ui_beamcalibration->GetWinTitle(), dock_main_id);
