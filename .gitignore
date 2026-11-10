@@ -10,6 +10,11 @@ Thumbs.db
 *.user
 *.userosscache
 *.sln.docstates
+*.VC.db
+*.VC.opendb
+*.sdf
+*.opensdf
+*.aps
 
 # Build output directories
 ForceControlUI*/msvc/**/[Bb]in/
@@ -32,6 +37,20 @@ ForceControlUI*/bin64/
 *.tlog
 *.lastbuildstate
 *.recipe
+*.exp
+
+# Runtime output when launched outside bin64
+/data/
+/ForceControlUI/data/
+/ForceControlUI/msvc/data/
+/ForceControlUI/msvc/*/data/
+ble_device_*.txt
+adc_data_*.txt
+com_data_*.txt
+experiment_data_*.csv
+LQYExp_*.csv
+*.log
+*.dmp
 
 # CMake output
 CMakeFiles/
