@@ -1,6 +1,7 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
+    <Filter Include="Sync"><UniqueIdentifier>{30793B48-ED42-4F58-A835-2D19E2926BE3}</UniqueIdentifier></Filter>
     <Filter Include="Resource Files">
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
@@ -174,9 +175,6 @@
     <ClInclude Include="..\..\include\CPSAPI\CPSDef.h">
       <Filter>CPS</Filter>
     </ClInclude>
-    <ClInclude Include="UIPipeRobot.h">
-      <Filter>UI\IMWindows\APP</Filter>
-    </ClInclude>
     <ClInclude Include="SerialADCReader.h">
       <Filter>Serial</Filter>
     </ClInclude>
@@ -195,13 +193,13 @@
     <ClInclude Include="UIBeamCalibration.h">
       <Filter>UI\IMWindows\APP</Filter>
     </ClInclude>
-    <ClInclude Include="UILQYExp.h">
-      <Filter>UI\IMWindows\APP</Filter>
-    </ClInclude>
     <ClInclude Include="UIYHGripper.h">
       <Filter>UI\IMWindows\APP</Filter>
     </ClInclude>
     <ClInclude Include="UICOMMonitor.h">
+      <Filter>UI\IMWindows\APP</Filter>
+    </ClInclude>
+    <ClInclude Include="UIURTeleop.h">
       <Filter>UI\IMWindows\APP</Filter>
     </ClInclude>
     <ClInclude Include="UIBLEMonitor.h">
@@ -209,6 +207,12 @@
     </ClInclude>
     <ClInclude Include="UINokov.h">
       <Filter>UI\IMWindows\APP</Filter>
+    </ClInclude>
+    <ClInclude Include="UISyncCapture.h">
+      <Filter>UI\IMWindows\APP</Filter>
+    </ClInclude>
+    <ClInclude Include="SyncCapture.h">
+      <Filter>Sync</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -288,9 +292,6 @@
     <ClCompile Include="UIHypersenMonitor.cpp">
       <Filter>UI\IMWindows\APP</Filter>
     </ClCompile>
-    <ClCompile Include="UIPipeRobot.cpp">
-      <Filter>UI\IMWindows\APP</Filter>
-    </ClCompile>
     <ClCompile Include="SerialADCReader.cpp">
       <Filter>Serial</Filter>
     </ClCompile>
@@ -306,13 +307,13 @@
     <ClCompile Include="UIBeamCalibration.cpp">
       <Filter>UI\IMWindows\APP</Filter>
     </ClCompile>
-    <ClCompile Include="UILQYExp.cpp">
-      <Filter>UI\IMWindows\APP</Filter>
-    </ClCompile>
     <ClCompile Include="UIYHGripper.cpp">
       <Filter>UI\IMWindows\APP</Filter>
     </ClCompile>
     <ClCompile Include="UICOMMonitor.cpp">
+      <Filter>UI\IMWindows\APP</Filter>
+    </ClCompile>
+    <ClCompile Include="UIURTeleop.cpp">
       <Filter>UI\IMWindows\APP</Filter>
     </ClCompile>
     <ClCompile Include="UIBLEMonitor.cpp">
@@ -320,6 +321,12 @@
     </ClCompile>
     <ClCompile Include="UINokov.cpp">
       <Filter>UI\IMWindows\APP</Filter>
+    </ClCompile>
+    <ClCompile Include="UISyncCapture.cpp">
+      <Filter>UI\IMWindows\APP</Filter>
+    </ClCompile>
+    <ClCompile Include="SyncCapture.cpp">
+      <Filter>Sync</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -21,7 +21,9 @@ public:
 private:
     void WriteFrames();
     void FinishCapture();
-    void DrawPoints();
+    void DrawPoints(float tableHeight = 0);
+    void DrawSettings(bool online);
+    void DrawCaptureControl();
     void DrawPointSelection(int id, bool named);
     void StartCapture(bool single = false);
     void StopCapture();

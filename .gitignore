@@ -48,7 +48,6 @@ ble_device_*.txt
 adc_data_*.txt
 com_data_*.txt
 experiment_data_*.csv
-LQYExp_*.csv
 *.log
 *.dmp
 

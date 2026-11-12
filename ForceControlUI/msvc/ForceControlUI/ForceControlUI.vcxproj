@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|x64">
@@ -129,19 +129,20 @@
     <ClInclude Include="UICfgParser.h" />
     <ClInclude Include="UICharDef.h" />
     <ClInclude Include="UICOMMonitor.h" />
+    <ClInclude Include="UIURTeleop.h" />
     <ClInclude Include="UIBLEMonitor.h" />
     <ClInclude Include="UIConnectionSettings.h" />
     <ClInclude Include="UIHelpAbout.h" />
     <ClInclude Include="UIHypersenMonitor.h" />
     <ClInclude Include="UIImageDef.h" />
     <ClInclude Include="UIImageView.h" />
-    <ClInclude Include="UILQYExp.h" />
     <ClInclude Include="UIMotorControl.h" />
     <ClInclude Include="UINokov.h" />
+    <ClInclude Include="UISyncCapture.h" />
+    <ClInclude Include="SyncCapture.h" />
     <ClInclude Include="UIOptSampling.h" />
     <ClInclude Include="UIOptiTrack.h" />
     <ClInclude Include="UIOtherSensors.h" />
-    <ClInclude Include="UIPipeRobot.h" />
     <ClInclude Include="UIPlotDef.h" />
     <ClInclude Include="UISerialCon.h" />
     <ClInclude Include="UISysSettings.h" />
@@ -174,18 +175,19 @@
     <ClCompile Include="UIBeamCalibration.cpp" />
     <ClCompile Include="UICfgParser.cpp" />
     <ClCompile Include="UICOMMonitor.cpp" />
+    <ClCompile Include="UIURTeleop.cpp" />
     <ClCompile Include="UIBLEMonitor.cpp" />
     <ClCompile Include="UIConnectionSettings.cpp" />
     <ClCompile Include="UIHelpAbout.cpp" />
     <ClCompile Include="UIHypersenMonitor.cpp" />
     <ClCompile Include="UIImageView.cpp" />
-    <ClCompile Include="UILQYExp.cpp" />
     <ClCompile Include="UIMotorControl.cpp" />
     <ClCompile Include="UINokov.cpp" />
+    <ClCompile Include="UISyncCapture.cpp" />
+    <ClCompile Include="SyncCapture.cpp" />
     <ClCompile Include="UIOptSampling.cpp" />
     <ClCompile Include="UIOptiTrack.cpp" />
     <ClCompile Include="UIOtherSensors.cpp" />
-    <ClCompile Include="UIPipeRobot.cpp" />
     <ClCompile Include="UISerialCon.cpp" />
     <ClCompile Include="UISysSettings.cpp" />
     <ClCompile Include="UIURobot.cpp" />

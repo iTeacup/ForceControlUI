@@ -1,5 +1,6 @@
 #pragma once
 #include "CPSCfg.h"
+#include <string>
 
 class UICfgParser
 {
@@ -7,12 +8,14 @@ public:
 	static UICfgParser* Inst();
 
 	bool LoadCfg();
-	void SaveCfg();
+	bool SaveCfg();
 public:
 	// bus log cfg
 	ST_BusLogCfg m_cpscfg = { 0 };
 	// ui app id
 	int m_app_id = -1;
+
+	std::string m_ur_model_path;
 
 	ST_MBCfg m_mb_cfg;
 	ST_SerialCfg m_serial_cfg;

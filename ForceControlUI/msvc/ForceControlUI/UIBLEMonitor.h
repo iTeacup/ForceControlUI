@@ -6,6 +6,7 @@
 #include <atomic>
 #include <chrono>
 #include <cstdint>
+#include <functional>
 #include <memory>
 #include <mutex>
 #include <string>
@@ -30,6 +31,23 @@ public:
     EUIMenuCategory GetWinMenuCategory() override { return EUIMenuCategory::E_UI_CAT_APP; }
     const char* GetShowShortCut() override { return "Ctrl+5"; }
 
+    struct DeviceInfo
+    {
+        uint32_t id;
+        uint64_t generation;
+        std::string name;
+        bool connected, busy;
+    };
+    using PacketObserver = std::function<void(uint32_t, uint64_t, const ST_BleAdcData&, double)>;
+    using StateObserver = std::function<void(uint32_t, uint64_t, bool)>;
+    std::vector<DeviceInfo> Devices() const;
+    void ConnectDevice(uint32_t id, bool connect);
+    struct Sample { ST_BleAdcData data; double host = 0; uint64_t generation = 0; };
+    // UI-thread snapshot; preserves the existing capture observer.
+    bool LatestSample(uint32_t id, Sample& sample) const;
+    // Clearing waits for an in-flight callback, allowing the subscriber to shut down safely.
+    void SetCaptureObserver(PacketObserver packet = {}, StateObserver state = {});
+
 private:
     enum class EBleState
     {
@@ -43,7 +61,14 @@ private:
 
     struct SBleDeviceMonitor
     {
+        struct NotifyGate
+        {
+            std::mutex mutex;
+            bool active = true;
+        };
+        std::shared_ptr<NotifyGate> notify_gate = std::make_shared<NotifyGate>();
         uint32_t id = 0;
+        uint64_t generation = 0;
         char display_name[64] = "BLE设备";
         char device_name[128] = "nRF52840_01";
         char service_uuid[64] = "19B10000-E8F2-537E-4F6C-D104768A1214";
@@ -61,6 +86,8 @@ private:
         std::thread ble_thread;
 
         ST_BleAdcData current_data;
+        double current_host = 0;
+        uint64_t current_generation = 0;
         std::mutex data_lock;
 
         std::mutex hist_lock;
@@ -84,7 +111,7 @@ private:
     void StopSerializeAll();
     void BleThreadFunc(SBleDeviceMonitor* device);
     void SerializeThreadFunc(SBleDeviceMonitor* device);
-    void OnPacketReceived(SBleDeviceMonitor* device, const std::string& packet);
+    void OnPacketReceived(SBleDeviceMonitor* device, const std::string& packet, double host_seconds);
     bool ParsePacket(const std::string& packet, ST_BleAdcData& data);
     void SetState(SBleDeviceMonitor* device, EBleState state, const std::string& message);
     void DrawDevice(size_t index, SBleDeviceMonitor* device);
@@ -96,4 +123,7 @@ private:
     float m_history_seconds = 30.0f;
     std::chrono::steady_clock::time_point m_plot_start_time = std::chrono::steady_clock::now();
     std::vector<std::unique_ptr<SBleDeviceMonitor>> m_devices;
+    std::mutex m_observer_lock;
+    PacketObserver m_packet_observer;
+    StateObserver m_state_observer;
 };

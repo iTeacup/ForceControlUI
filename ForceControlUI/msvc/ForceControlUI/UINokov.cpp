@@ -4,6 +4,7 @@
 #include <CPSAPI/CPSAPI.h>
 #include <imgui.h>
 #include "IconsFontAwesome6.h"
+#include <algorithm>
 #include <filesystem>
 #include <iomanip>
 #include <cstdio>
@@ -497,22 +498,41 @@ void UINokov::DrawPointSelection(int id, bool named)
     ImGui::PopID();
 }
 
-void UINokov::DrawPoints()
+void UINokov::DrawPoints(float tableHeight)
 {
-    ImGui::SeparatorText(u8"标记点选择与坐标预览");
+    ImGui::SeparatorText(u8"标记点 · 坐标预览");
+    ImGui::BeginDisabled(m_recording || m_finishing);
+    if (ImGui::Checkbox(u8"记录全部点", &m_record_all))
+    {
+        m_selected_ids.clear();
+        if (m_record_all)
+            for (const auto& entry : m_known_names) m_selected_ids.insert(entry.first);
+    }
+    ImGui::EndDisabled();
+    ImGui::SameLine();
+    ImGui::TextDisabled(u8"已选 %zu / %zu 点", m_selected_ids.size(), m_known_names.size());
+    bool unresolved = false;
+    for (const auto& m : m_preview_frame.markers)
+        if (!m.asset[0] || !m.name[0]) unresolved = true;
     if (m_preview_frame.markers.empty())
         ImGui::TextWrapped(u8"%s", m_has_frame ? u8"已收到帧，本帧为空帧。"
                                                : u8"等待动捕帧数据。连接后将在下表显示点名称和 XYZ 坐标。");
+    if (tableHeight <= 0)
+        tableHeight = std::max(ImGui::GetTextLineHeightWithSpacing() * 5,
+                              ImGui::GetWindowHeight() - ImGui::GetCursorPosY() - ImGui::GetStyle().WindowPadding.y -
+                              ImGui::GetStyle().ItemSpacing.y - (unresolved ? ImGui::GetTextLineHeightWithSpacing() * 3 : 0));
     if (ImGui::BeginTable("MarkerPreview", 7,
-                          ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_Resizable))
+                          ImGuiTableFlags_BordersInnerH | ImGuiTableFlags_RowBg | ImGuiTableFlags_Resizable |
+                          ImGuiTableFlags_ScrollX | ImGuiTableFlags_ScrollY,
+                          ImVec2(0, tableHeight), std::max(ImGui::GetContentRegionAvail().x, ImGui::GetFontSize() * 36)))
     {
-        ImGui::TableSetupColumn(u8"选择");
-        ImGui::TableSetupColumn(u8"资产名称");
-        ImGui::TableSetupColumn(u8"点名称");
-        ImGui::TableSetupColumn(u8"X (mm)");
-        ImGui::TableSetupColumn(u8"Y (mm)");
-        ImGui::TableSetupColumn(u8"Z (mm)");
-        ImGui::TableSetupColumn(u8"当前状态");
+        ImGui::TableSetupScrollFreeze(1, 1);
+        ImGui::TableSetupColumn(u8"选择", ImGuiTableColumnFlags_WidthFixed, ImGui::GetFontSize() * 3);
+        ImGui::TableSetupColumn(u8"资产名称", ImGuiTableColumnFlags_WidthStretch, 1.5f);
+        ImGui::TableSetupColumn(u8"点名称", ImGuiTableColumnFlags_WidthStretch);
+        for (const char* label : {"X (mm)", "Y (mm)", "Z (mm)"})
+            ImGui::TableSetupColumn(label, ImGuiTableColumnFlags_WidthFixed, ImGui::GetFontSize() * 6.5f);
+        ImGui::TableSetupColumn(u8"状态", ImGuiTableColumnFlags_WidthFixed, ImGui::GetFontSize() * 3);
         ImGui::TableHeadersRow();
         for (auto& m : m_preview_frame.markers)
         {
@@ -562,18 +582,74 @@ void UINokov::DrawPoints()
         ImGui::EndTable();
     }
 
-    bool unresolved = false;
-    for (const auto& m : m_preview_frame.markers)
-        if (!m.asset[0] || !m.name[0])
-            unresolved = true;
     if (unresolved)
         ImGui::TextWrapped(u8"部分点尚未匹配名称，请重新连接NOKOV。重合点不会被强行命名。");
 }
 
+void UINokov::DrawSettings(bool online)
+{
+    const auto now = Clock::now();
+    const bool statusFresh = m_timing.last_status != Clock::time_point{} && now - m_timing.last_status < std::chrono::seconds(3);
+    const bool framesFresh = m_has_frame && now - m_timing.last_frame < std::chrono::seconds(2);
+    const bool busy = m_recording || m_finishing;
+    ImGui::SeparatorText(u8"NOKOV · 连接");
+    ImGui::Text(u8"总线设备：%s", online ? u8"在线" : u8"离线");
+    ImGui::Text(u8"动捕连接：%s", statusFresh ? (m_status.connected ? u8"已连接" : u8"未连接") : u8"未知");
+    ImGui::BeginDisabled(busy);
+    if (NokovButton(ICON_FA_PLAY, u8"连接 NOKOV")) SendCommand(true);
+    ImGui::EndDisabled();
+    ImGui::SameLine();
+    if (NokovButton(ICON_FA_STOP, u8"断开"))
+    {
+        if (busy)
+        {
+            m_disconnect_pending = true;
+            StopCapture();
+        }
+        else SendCommand(false);
+    }
+    ImGui::Spacing();
+    ImGui::SeparatorText(u8"数据流");
+    ImGui::TextColored(framesFresh ? ImVec4(0.35f, 0.85f, 0.65f, 1) : ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled),
+                       "%s", framesFresh ? u8"正在接收" : u8"等待有效帧数据");
+    ImGui::Text(u8"接收频率   %.1f Hz", m_receive_hz);
+    if (m_has_frame) ImGui::Text(u8"最新帧号   %d", m_preview_frame.header.frame);
+    else ImGui::TextDisabled(u8"最新帧号   --");
+    ImGui::Text(u8"当前点数   %zu", m_preview_frame.markers.size());
+    ImGui::Spacing();
+    ImGui::SeparatorText(u8"保存设置");
+    ImGui::TextUnformatted(u8"保存目录");
+    ImGui::BeginDisabled(busy);
+    ImGui::SetNextItemWidth(-1);
+    ImGui::InputText("##NokovDirectory", m_save_directory, sizeof(m_save_directory));
+    ImGui::EndDisabled();
+    if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", m_save_directory);
+}
+
+void UINokov::DrawCaptureControl()
+{
+    const bool busy = m_recording || m_finishing;
+    ImGui::SeparatorText(u8"采集控制");
+    ImGui::BeginDisabled(busy);
+    if (NokovButton(ICON_FA_ARROW_DOWN, u8"单次保存")) StartCapture(true);
+    ImGui::SameLine();
+    if (NokovButton(ICON_FA_PLAY, u8"连续采集")) StartCapture();
+    ImGui::EndDisabled();
+    ImGui::SameLine();
+    ImGui::BeginDisabled(!m_recording);
+    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.55f, 0.20f, 0.24f, 1));
+    if (NokovButton(ICON_FA_STOP, u8"停止采集")) StopCapture();
+    ImGui::PopStyleColor();
+    ImGui::EndDisabled();
+    ImGui::SameLine();
+    ImGui::Text(u8"%s · 已写入 %llu 帧", m_finishing ? u8"正在完成写入" : m_recording ? u8"采集中" : u8"未采集", m_written_frames);
+    if (!m_recording_path.empty()) ImGui::TextWrapped(u8"保存位置：%s", m_recording_path.c_str());
+    if (!m_error.empty()) ImGui::TextWrapped(u8"错误：%s", m_error.c_str());
+}
+
 void UINokov::Draw()
 {
-    if (!m_show)
-        return;
+    if (!m_show) return;
     if (!ImGui::Begin(m_win_title, &m_show))
     {
         ImGui::End();
@@ -581,7 +657,7 @@ void UINokov::Draw()
     }
     std::lock_guard<std::mutex> lock(m_mutex);
     const auto now = Clock::now();
-    // Refresh displayed coordinates at 10 Hz; acquisition and writing remain per-frame.
+    // Only the displayed snapshot is throttled; acquisition and recording remain per-frame.
     if (now - m_timing.preview_sample >= std::chrono::milliseconds(100))
     {
         m_preview_frame = m_latest_frame;
@@ -589,54 +665,36 @@ void UINokov::Draw()
     }
     auto api = g_app.GetCPSApi();
     const bool online = api && api->IsDeviceOnline(nokov::Device);
-    ImGui::Text(u8"总线设备：%s | 动捕连接：%s | 数据流：%s", online ? u8"在线" : u8"离线",
-                m_timing.last_status != Clock::time_point{} && now - m_timing.last_status < std::chrono::seconds(3)
-                    ? (m_status.connected ? u8"已连接" : u8"未连接")
-                    : u8"未知",
-                m_has_frame && now - m_timing.last_frame < std::chrono::seconds(2) ? u8"接收中" : u8"无近期数据");
-    if (NokovButton(ICON_FA_PLAY, u8" 连接NOKOV"))
-        SendCommand(true);
-    ImGui::SameLine();
-    if (NokovButton(ICON_FA_STOP, u8" 断开NOKOV"))
+    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(8, 6));
+    const float footer = ImGui::GetFrameHeightWithSpacing() + ImGui::GetTextLineHeightWithSpacing() * 4.5f;
+    const float height = std::max(100.0f, ImGui::GetContentRegionAvail().y - footer);
+    const bool wide = ImGui::GetContentRegionAvail().x >= ImGui::GetFontSize() * 48;
+    if (wide && ImGui::BeginTable("NokovPanels", 2, ImGuiTableFlags_SizingStretchProp))
     {
-        if (m_recording || m_finishing)
-        {
-            m_disconnect_pending = true;
-            StopCapture();
-        }
-        else
-            SendCommand(false);
+        ImGui::TableSetupColumn("Settings", ImGuiTableColumnFlags_WidthFixed, ImGui::GetFontSize() * 19);
+        ImGui::TableSetupColumn("Preview", ImGuiTableColumnFlags_WidthStretch);
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::BeginChild("NokovSettings", ImVec2(0, height), true);
+        DrawSettings(online);
+        ImGui::EndChild();
+        ImGui::TableNextColumn();
+        ImGui::BeginChild("NokovPreview", ImVec2(0, height), true);
+        DrawPoints();
+        ImGui::EndChild();
+        ImGui::EndTable();
     }
-    ImGui::Text(u8"最新帧号 %d | 当前点数 %zu | 本轮已写入 %llu 帧", m_preview_frame.header.frame,
-                m_preview_frame.markers.size(), m_written_frames);
-    ImGui::Text(u8"上位机接收：%.1f Hz", m_receive_hz);
-    if (!m_recording && !m_finishing)
+    else if (!wide)
     {
-        ImGui::InputText(u8"保存目录", m_save_directory, sizeof(m_save_directory));
-        if (ImGui::Checkbox(u8"记录全部点", &m_record_all))
-        {
-            m_selected_ids.clear();
-            if (m_record_all)
-                for (const auto& entry : m_known_names)
-                    m_selected_ids.insert(entry.first);
-        }
+        ImGui::BeginChild("NokovStacked", ImVec2(0, height), true);
+        DrawSettings(online);
+        ImGui::Spacing();
+        DrawPoints(ImGui::GetTextLineHeightWithSpacing() * 14);
+        ImGui::EndChild();
     }
-    DrawPoints();
-    if (!m_recording && !m_finishing)
-    {
-        if (NokovButton(ICON_FA_ARROW_DOWN, u8" 单次保存"))
-            StartCapture(true);
-        ImGui::SameLine();
-        if (NokovButton(ICON_FA_PLAY, u8" 连续采集"))
-            StartCapture();
-    }
-    if (m_recording && NokovButton(ICON_FA_STOP, u8" 停止采集"))
-        StopCapture();
-    if (m_finishing)
-        ImGui::TextUnformatted(u8"正在完成写入……");
-    if (!m_recording_path.empty())
-        ImGui::TextWrapped(u8"保存位置：%s", m_recording_path.c_str());
-    if (!m_error.empty())
-        ImGui::TextWrapped(u8"错误：%s", m_error.c_str());
+    ImGui::BeginChild("NokovControl", ImVec2(0, 0), true);
+    DrawCaptureControl();
+    ImGui::EndChild();
+    ImGui::PopStyleVar();
     ImGui::End();
 }
