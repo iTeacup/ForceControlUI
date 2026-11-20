@@ -40,14 +40,6 @@
     "enable": true
   },
   {
-    "id": 776,
-    "name": "PipeRobot",
-    "type": 1280,
-    "desc": "PipeRobot",
-    "author": "",
-    "enable": true
-  },
-  {
     "id": 777,
     "name": "SRISensor",
     "type": 1280,

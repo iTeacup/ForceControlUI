@@ -35,6 +35,53 @@ UIBLEMonitor::~UIBLEMonitor()
     StopAllDevices();
 }
 
+std::vector<UIBLEMonitor::DeviceInfo> UIBLEMonitor::Devices() const
+{
+    std::vector<DeviceInfo> result;
+    for (const auto& device : m_devices)
+    {
+        std::lock_guard<std::mutex> lock(device->state_lock);
+        const auto state = device->state;
+        result.push_back({device->id, device->generation, device->display_name,
+            state == EBleState::Connected,
+            state == EBleState::Scanning || state == EBleState::Connecting || state == EBleState::Disconnecting});
+    }
+    return result;
+}
+
+bool UIBLEMonitor::LatestSample(uint32_t id, Sample& sample) const
+{
+    for (const auto& device : m_devices)
+        if (device->id == id)
+        {
+            std::lock_guard<std::mutex> state(device->state_lock);
+            if (device->state != EBleState::Connected) return false;
+            std::lock_guard<std::mutex> data(device->data_lock);
+            if (device->current_host <= 0 || device->current_generation != device->generation) return false;
+            sample = {device->current_data, device->current_host, device->current_generation};
+            return true;
+        }
+    return false;
+}
+
+void UIBLEMonitor::ConnectDevice(uint32_t id, bool connect)
+{
+    for (auto& device : m_devices)
+        if (device->id == id)
+        {
+            if (connect && !IsBusyOrConnected(*device)) StartConnect(device.get());
+            else if (!connect) StopConnect(device.get());
+            return;
+        }
+}
+
+void UIBLEMonitor::SetCaptureObserver(PacketObserver packet, StateObserver state)
+{
+    std::lock_guard<std::mutex> lock(m_observer_lock);
+    m_packet_observer = std::move(packet);
+    m_state_observer = std::move(state);
+}
+
 void UIBLEMonitor::AddDevice()
 {
     auto device = std::make_unique<SBleDeviceMonitor>();
@@ -127,9 +174,13 @@ void UIBLEMonitor::SetState(SBleDeviceMonitor* device, EBleState state, const st
         return;
     }
 
-    std::lock_guard<std::mutex> lock(device->state_lock);
-    device->state = state;
-    device->state_msg = message;
+    {
+        std::lock_guard<std::mutex> lock(device->state_lock);
+        device->state = state;
+        device->state_msg = message;
+    }
+    std::lock_guard<std::mutex> observer(m_observer_lock);
+    if (m_state_observer) m_state_observer(device->id, device->generation, state == EBleState::Connected);
 }
 
 void UIBLEMonitor::StartConnect(SBleDeviceMonitor* device)
@@ -140,6 +191,8 @@ void UIBLEMonitor::StartConnect(SBleDeviceMonitor* device)
     }
 
     StopConnect(device);
+    device->notify_gate = std::make_shared<SBleDeviceMonitor::NotifyGate>();
+    ++device->generation;
     device->stop_ble = false;
     {
         std::lock_guard<std::mutex> lock(device->state_lock);
@@ -164,6 +217,16 @@ void UIBLEMonitor::StopConnect(SBleDeviceMonitor* device)
     }
 
     device->stop_ble = true;
+    // Wait for an active notification and make already-scheduled callbacks harmless.
+    // The shared gate outlives device deletion until all WinRT callbacks have returned.
+    {
+        std::lock_guard<std::mutex> notification(device->notify_gate->mutex);
+        device->notify_gate->active = false;
+    }
+    {
+        std::lock_guard<std::mutex> observer(m_observer_lock);
+        if (m_state_observer) m_state_observer(device->id, device->generation, false);
+    }
     {
         std::lock_guard<std::mutex> lock(device->state_lock);
         if (device->state == EBleState::Scanning || device->state == EBleState::Connecting || device->state == EBleState::Connected)
@@ -201,7 +264,7 @@ bool UIBLEMonitor::ParsePacket(const std::string& packet, ST_BleAdcData& data)
     return true;
 }
 
-void UIBLEMonitor::OnPacketReceived(SBleDeviceMonitor* device, const std::string& packet)
+void UIBLEMonitor::OnPacketReceived(SBleDeviceMonitor* device, const std::string& packet, double host_seconds)
 {
     if (device == nullptr)
     {
@@ -214,12 +277,19 @@ void UIBLEMonitor::OnPacketReceived(SBleDeviceMonitor* device, const std::string
         return;
     }
 
+    {
+        std::lock_guard<std::mutex> observer(m_observer_lock);
+        if (m_packet_observer) m_packet_observer(device->id, device->generation, data, host_seconds);
+    }
+
     auto now = std::chrono::steady_clock::now();
     float t = std::chrono::duration<float>(now - m_plot_start_time).count();
 
     {
         std::lock_guard<std::mutex> lock(device->data_lock);
         device->current_data = data;
+        device->current_host = host_seconds;
+        device->current_generation = device->generation;
     }
 
     {
@@ -356,7 +426,11 @@ void UIBLEMonitor::BleThreadFunc(SBleDeviceMonitor* device)
         }
 
         GattCharacteristic characteristic = characteristics_result.Characteristics().GetAt(0);
-        auto token = characteristic.ValueChanged([this, device](GattCharacteristic const&, GattValueChangedEventArgs const& args) {
+        auto token = characteristic.ValueChanged(auto_revoke, [this, device, gate = device->notify_gate](GattCharacteristic const&, GattValueChangedEventArgs const& args) {
+            const double host_seconds = std::chrono::duration<double>(
+                std::chrono::steady_clock::now().time_since_epoch()).count();
+            std::lock_guard<std::mutex> notification(gate->mutex);
+            if (!gate->active) return;
             auto buffer = args.CharacteristicValue();
             DataReader reader = DataReader::FromBuffer(buffer);
             std::string packet;
@@ -364,7 +438,7 @@ void UIBLEMonitor::BleThreadFunc(SBleDeviceMonitor* device)
             if (!packet.empty())
             {
                 reader.ReadBytes(array_view<uint8_t>(reinterpret_cast<uint8_t*>(&packet[0]), reinterpret_cast<uint8_t*>(&packet[0]) + packet.size()));
-                OnPacketReceived(device, packet);
+                OnPacketReceived(device, packet, host_seconds);
             }
         });
 
@@ -372,7 +446,7 @@ void UIBLEMonitor::BleThreadFunc(SBleDeviceMonitor* device)
             GattClientCharacteristicConfigurationDescriptorValue::Notify).get();
         if (notify_status != GattCommunicationStatus::Success)
         {
-            characteristic.ValueChanged(token);
+            token.revoke();
             SetState(device, EBleState::Error, u8"开启 BLE Notify 失败");
             return;
         }
@@ -385,7 +459,7 @@ void UIBLEMonitor::BleThreadFunc(SBleDeviceMonitor* device)
 
         characteristic.WriteClientCharacteristicConfigurationDescriptorAsync(
             GattClientCharacteristicConfigurationDescriptorValue::None).get();
-        characteristic.ValueChanged(token);
+        token.revoke();
     }
     catch (const hresult_error& e)
     {

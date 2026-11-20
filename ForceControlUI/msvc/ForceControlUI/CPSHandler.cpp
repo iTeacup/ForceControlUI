@@ -26,7 +26,6 @@ void CPSHandler::OnConnected()
     m_cpsapi->SubscribeDevice(SENSOR_SERVER_DEV_ID);
     m_cpsapi->SubscribeDevice(HYPERSEN_SENSOR_DEV_ID);
     m_cpsapi->SubscribeDevice(FINRAY_CALC_SERVER_DEV_ID);
-    m_cpsapi->SubscribeDevice(PIPE_ROBOT_DEV_ID);
     m_cpsapi->SubscribeDevice(SRI_SENSOR_DEV_ID);
 
 	m_cpsapi->SubscribeDevice(OTHER_SENSORS_DEV_ID);

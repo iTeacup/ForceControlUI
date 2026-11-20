@@ -12,8 +12,6 @@
 #define HYPERSEN_SENSOR_DEV_ID		0x306  // 774
 // Finray CalcServer DEV_ID
 #define FINRAY_CALC_SERVER_DEV_ID	0x307  // 775
-// PipeRobot DEV ID
-#define PIPE_ROBOT_DEV_ID			0x308  // 776
 // SRISensor DEV ID
 #define SRI_SENSOR_DEV_ID			0x309  // 777
 

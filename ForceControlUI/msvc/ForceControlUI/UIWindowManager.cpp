@@ -25,8 +25,8 @@
 #include "UIURobot.h"
 #include "UIOptiTrack.h"
 #include "UINokov.h"
-#include "UIPipeRobot.h"
-#include "UILQYExp.h"
+#include "UISyncCapture.h"
+#include "UIURTeleop.h"
 #include "UIADCSerialCon.h"
 #include "UIOtherSensors.h"
 #include "UIBeamCalibration.h"
@@ -164,9 +164,9 @@ void UIWindowManager::InitWindows()
 	m_ui_ble_monitor = new UIBLEMonitor(m_ui_main, buf);
 	m_win_list.push_back(m_ui_ble_monitor);
 
-	stbsp_sprintf(buf, u8"%s Opt采样", ICON_FA_FILE_CSV);
-	m_ui_opt_sampling = new UIOptSampling(m_ui_main, buf);
-	m_win_list.push_back(m_ui_opt_sampling);
+	//stbsp_sprintf(buf, u8"%s Opt采样", ICON_FA_FILE_CSV);
+	//m_ui_opt_sampling = new UIOptSampling(m_ui_main, buf);
+	//m_win_list.push_back(m_ui_opt_sampling);
 
     //stbsp_sprintf(buf, u8"%s Hypersen", ICON_FA_DRUM_STEELPAN);
     //m_ui_hypersen = new UIHypersenMonitor(m_ui_main, buf);
@@ -180,24 +180,25 @@ void UIWindowManager::InitWindows()
     m_ui_urobot = new UIURobot(m_ui_main, buf);
     m_win_list.push_back(m_ui_urobot);
 
-    stbsp_sprintf(buf, u8"%s OptiTrack", ICON_FA_CUBE);
-    m_ui_opt = new UIOptiTrack(m_ui_main, buf);
-    m_win_list.push_back(m_ui_opt);
+    //stbsp_sprintf(buf, u8"%s OptiTrack", ICON_FA_CUBE);
+    //m_ui_opt = new UIOptiTrack(m_ui_main, buf);
+    //m_win_list.push_back(m_ui_opt);
     stbsp_sprintf(buf, "%s NOKOV", ICON_FA_CUBE);
     m_ui_nokov = new UINokov(m_ui_main, buf);
     m_win_list.push_back(m_ui_nokov);
 
-    //stbsp_sprintf(buf, u8"%s 管道机器人", ICON_FA_WORM);
-    //m_ui_piperobot = new UIPipeRobot(m_ui_main, buf);
-    //m_win_list.push_back(m_ui_piperobot);
+    stbsp_sprintf(buf, u8"%s \u540c\u6b65\u91c7\u96c6", ICON_FA_SIGNAL);
+    m_ui_sync_capture = new UISyncCapture(m_ui_main, buf, m_ui_ble_monitor);
+    m_win_list.push_back(m_ui_sync_capture);
+    stbsp_sprintf(buf, u8"%s UR\u9065\u64cd", ICON_FA_ROBOT);
+    m_ui_ur_teleop = new UIURTeleop(m_ui_main, buf, m_ui_ble_monitor, m_ui_urobot->GetURManager());
+    m_win_list.push_back(m_ui_ur_teleop);
 
-    //stbsp_sprintf(buf, u8"%s LQY实验", ICON_FA_VIAL);
-    //m_ui_lqyexp = new UILQYExp(m_ui_main, buf);
-    //m_win_list.push_back(m_ui_lqyexp);
 
-	stbsp_sprintf(buf, u8"%s 弯扭实验", ICON_FA_VIAL);
-	m_ui_beamcalibration = new UIBeamCalibration(m_ui_main, buf);
-	m_win_list.push_back(m_ui_beamcalibration);
+
+	//stbsp_sprintf(buf, u8"%s 弯扭实验", ICON_FA_VIAL);
+	//m_ui_beamcalibration = new UIBeamCalibration(m_ui_main, buf);
+	//m_win_list.push_back(m_ui_beamcalibration);
 }
 
 void UIWindowManager::InitMenus()
@@ -374,16 +375,16 @@ void UIWindowManager::ResetLayout()
     m_ui_adc->Show();
 	m_ui_com->Show();
 	m_ui_ble_monitor->Show();
-	m_ui_opt_sampling->Show();
+	//m_ui_opt_sampling->Show();
 	
     //m_ui_hypersen->Show();
     //m_ui_yhgripper->Show();
     m_ui_urobot->Show();
-    m_ui_opt->Show();
+    //m_ui_opt->Show();
     m_ui_nokov->Show();
-    //m_ui_piperobot->Show();
-    //m_ui_lqyexp->Show();
-	m_ui_beamcalibration->Show();
+    m_ui_sync_capture->Show();
+    m_ui_ur_teleop->Show();
+	//m_ui_beamcalibration->Show();
 
 	ImGui::DockBuilderDockWindow(m_ui_conn->GetWinTitle(), dock_id_con);
     ImGui::DockBuilderDockWindow(m_ui_serial->GetWinTitle(), dock_id_con);
@@ -393,15 +394,15 @@ void UIWindowManager::ResetLayout()
     ImGui::DockBuilderDockWindow(m_ui_adc->GetWinTitle(), dock_main_id);
 	ImGui::DockBuilderDockWindow(m_ui_com->GetWinTitle(), dock_main_id);
 	ImGui::DockBuilderDockWindow(m_ui_ble_monitor->GetWinTitle(), dock_main_id);
-	ImGui::DockBuilderDockWindow(m_ui_opt_sampling->GetWinTitle(), dock_main_id);
+	//ImGui::DockBuilderDockWindow(m_ui_opt_sampling->GetWinTitle(), dock_main_id);
     //ImGui::DockBuilderDockWindow(m_ui_hypersen->GetWinTitle(), dock_main_id);
     //ImGui::DockBuilderDockWindow(m_ui_yhgripper->GetWinTitle(), dock_main_id);
     ImGui::DockBuilderDockWindow(m_ui_urobot->GetWinTitle(), dock_main_id);
-    ImGui::DockBuilderDockWindow(m_ui_opt->GetWinTitle(), dock_main_id);
+    //ImGui::DockBuilderDockWindow(m_ui_opt->GetWinTitle(), dock_main_id);
     ImGui::DockBuilderDockWindow(m_ui_nokov->GetWinTitle(), dock_main_id);
-    //ImGui::DockBuilderDockWindow(m_ui_piperobot->GetWinTitle(), dock_main_id);
-    //ImGui::DockBuilderDockWindow(m_ui_lqyexp->GetWinTitle(), dock_main_id);
-	ImGui::DockBuilderDockWindow(m_ui_beamcalibration->GetWinTitle(), dock_main_id);
+    ImGui::DockBuilderDockWindow(m_ui_sync_capture->GetWinTitle(), dock_main_id);
+    ImGui::DockBuilderDockWindow(m_ui_ur_teleop->GetWinTitle(), dock_main_id);
+	//ImGui::DockBuilderDockWindow(m_ui_beamcalibration->GetWinTitle(), dock_main_id);
     
 	ImGui::DockBuilderDockWindow(m_ui_log->GetWinTitle(), dock_id_log);
 
@@ -420,6 +421,8 @@ void UIWindowManager::OnCPSMsg(uint32_t from_id, uint32_t msg_type, const char* 
 
 void UIWindowManager::Destroy()
 {
+    if (m_ui_ur_teleop) m_ui_ur_teleop->Shutdown();
+    if (m_ui_sync_capture) m_ui_sync_capture->Shutdown();
 	// release window ptr
 	for (size_t i = 0; i < m_win_list.size(); i++)
 	{
